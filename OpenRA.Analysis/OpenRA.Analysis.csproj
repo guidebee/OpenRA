@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
+    <ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj" />
+    <ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj" />
+    <PackageReference Include="YamlDotNet" Version="13.1.1" />
+  </ItemGroup>
+</Project>

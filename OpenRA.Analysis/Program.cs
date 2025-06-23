@@ -1,0 +1,464 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using YamlDotNet.RepresentationModel;
+using YamlDotNet.Core;
+using OpenRA;
+using OpenRA.Traits;
+using OpenRA.Mods.Common.Traits;
+using OpenRA.Mods.Common.Orders;
+
+namespace OpenRA.Analysis
+{
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			Console.WriteLine("OpenRA Analysis Tool");
+			Console.WriteLine("===================");
+
+			string modPath = null;
+
+			// Default to the Red Alert mod directory if no path is provided
+			if (args.Length > 0)
+				modPath = args[0];
+			else
+			{
+				// Look for mod directory in standard locations
+				var possiblePaths = new[]
+				{
+					Path.Combine(Environment.CurrentDirectory, "mods", "ra"),
+					Path.Combine(Path.GetDirectoryName(Environment.ProcessPath), "mods", "ra"),
+					Path.Combine(Environment.CurrentDirectory, "..", "mods", "ra")
+				};
+
+				foreach (var path in possiblePaths)
+				{
+					if (Directory.Exists(path))
+					{
+						modPath = path;
+						break;
+					}
+				}
+			}
+
+			if (modPath == null || !Directory.Exists(modPath))
+			{
+				Console.WriteLine("Could not find the Red Alert mod directory.");
+				Console.WriteLine("Please provide the path to the Red Alert mod directory as a command-line argument.");
+				return;
+			}
+
+			Console.WriteLine($"Analyzing mod at: {modPath}");
+
+			bool continueRunning = true;
+			while (continueRunning)
+			{
+				Console.WriteLine("\nSelect an option:");
+				Console.WriteLine("1. Analyze orders from YAML files");
+				Console.WriteLine("2. Show order structure information");
+				Console.WriteLine("3. Show order examples");
+				Console.WriteLine("4. Show network flow for orders");
+				Console.WriteLine("5. List all IIssueOrder implementations");
+				Console.WriteLine("6. Exit");
+				Console.Write("\nEnter your choice (1-6): ");
+
+				var choice = Console.ReadLine();
+				Console.WriteLine();
+
+				try
+				{
+					switch (choice)
+					{
+						case "1":
+							AnalyzeOrders(modPath);
+							break;
+						case "2":
+							OrderAnalysis.DumpOrderInfo();
+							OrderAnalysis.ExplainTargetTypes();
+							break;
+						case "3":
+							OrderAnalysis.ShowOrderExample();
+							break;
+						case "4":
+							OrderAnalysis.ShowNetworkFlow();
+							break;
+						case "5":
+							ListAllIIssueOrderImplementations();
+							break;
+						case "6":
+							continueRunning = false;
+							break;
+						default:
+							Console.WriteLine("Invalid choice. Please try again.");
+							break;
+					}
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error: {ex.Message}");
+					Console.WriteLine(ex.StackTrace);
+				}
+
+				if (continueRunning)
+				{
+					Console.WriteLine("\nPress any key to continue...");
+					Console.ReadKey();
+					Console.Clear();
+					Console.WriteLine("OpenRA Analysis Tool");
+					Console.WriteLine("===================");
+				}
+			}
+
+			Console.WriteLine("\nThank you for using the OpenRA Analysis Tool!");
+		}
+
+		static void ListAllIIssueOrderImplementations()
+		{
+			Console.WriteLine("Analyzing all types that implement IIssueOrder...");
+
+			var types = new List<Type>();
+
+			// Check the Common assembly
+			var commonAssembly = typeof(OpenRA.Mods.Common.Traits.Mobile).Assembly;
+			types.AddRange(commonAssembly.GetTypes().Where(t => typeof(IIssueOrder).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract));
+
+			// Check the Cnc assembly - use SupportPower which is public
+			var cncAssembly = typeof(OpenRA.Mods.Common.Traits.SupportPower).Assembly;
+			var cncTypes = cncAssembly.GetTypes().Where(t => typeof(IIssueOrder).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+			types.AddRange(cncTypes);
+
+			Console.WriteLine($"\nFound {types.Count} types implementing IIssueOrder:");
+			foreach (var type in types.OrderBy(t => t.Name))
+			{
+				Console.WriteLine($"- {type.Name}");
+			}
+
+			// Extract order strings from the implementations
+			var allOrders = new HashSet<string>();
+			foreach (var type in types)
+			{
+				try
+				{
+					// Try to find order strings in methods
+					var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+					foreach (var method in methods.Where(m => m.Name == "IssueOrder" || m.Name == "ResolveOrder"))
+					{
+						// Check if there are any string literals in the method that might be order names
+						var body = method.ToString();
+						var matches = Regex.Matches(body, "\"([^\"]+)\"");
+						foreach (Match match in matches)
+						{
+							var potentialOrder = match.Groups[1].Value;
+							if (!string.IsNullOrWhiteSpace(potentialOrder) && char.IsUpper(potentialOrder[0]))
+								allOrders.Add(potentialOrder);
+						}
+					}
+				}
+				catch
+				{
+					// Ignore reflection errors
+				}
+			}
+
+			Console.WriteLine("\nPotential order strings extracted from code:");
+			Console.WriteLine("===========================================");
+			foreach (var order in allOrders.OrderBy(o => o))
+			{
+				Console.WriteLine(order);
+			}
+		}
+
+		static void AnalyzeOrders(string modPath)
+		{
+			string rulesPath = Path.Combine(modPath, "rules");
+
+			if (!Directory.Exists(rulesPath))
+			{
+				Console.WriteLine($"Error: Rules directory not found at '{rulesPath}'");
+				return;
+			}
+
+			// Will contain all actor types and their supported orders
+			var actorOrders = new Dictionary<string, HashSet<string>>();
+
+			// Will contain all unique order types
+			var allOrders = new HashSet<string>();
+
+			// Known order types - let's add these as defaults since they might not be explicitly listed in traits
+			AddKnownOrderTypes(allOrders);
+
+			// Process all YAML files in the rules directory and subdirectories
+			Console.WriteLine("Scanning YAML files for order definitions...");
+			int processedFiles = 0;
+			int skippedFiles = 0;
+
+			// Search through traits that are known to implement IIssueOrder
+			var orderTraitNames = GetOrderTraitNames();
+
+			// Use a manual approach to parse the YAML since OpenRA's format is not fully compliant with YAML spec
+			foreach (var file in Directory.GetFiles(rulesPath, "*.yaml", SearchOption.AllDirectories))
+			{
+				try
+				{
+					// Simple parsing approach for OpenRA-style YAML
+					using (var reader = new StreamReader(file))
+					{
+						string actorName = null;
+						string traitName = null;
+						int actorIndent = -1;
+						int traitIndent = -1;
+						bool inOrdersTraitBlock = false;
+
+						string line;
+						while ((line = reader.ReadLine()) != null)
+						{
+							// Skip comments and empty lines
+							if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith('#'))
+								continue;
+
+							// Count leading spaces/tabs for indentation level
+							int indent = CountLeadingWhitespace(line);
+							string trimmedLine = line.Trim();
+
+							// Actor definition (top level)
+							if (indent == 0 && trimmedLine.EndsWith(':'))
+							{
+								actorName = trimmedLine.TrimEnd(':');
+								actorIndent = indent;
+
+								if (!actorOrders.ContainsKey(actorName))
+									actorOrders[actorName] = new HashSet<string>();
+
+								continue;
+							}
+
+							// Skip if we're not inside an actor definition
+							if (actorName == null)
+								continue;
+
+							// If we've moved back to a previous indentation level, reset accordingly
+							if (indent <= actorIndent)
+							{
+								actorName = null;
+								traitName = null;
+								inOrdersTraitBlock = false;
+								continue;
+							}
+
+							// Trait definition (inside actor)
+							if (indent > actorIndent && traitName == null && trimmedLine.EndsWith(':'))
+							{
+								traitName = trimmedLine.TrimEnd(':');
+								traitIndent = indent;
+
+								// Check if this is a trait that typically implements IIssueOrder
+								inOrdersTraitBlock = orderTraitNames.Any(t => traitName.StartsWith(t));
+
+								// Add trait-specific default orders
+								AddTraitSpecificOrders(actorName, traitName, actorOrders, allOrders);
+
+								continue;
+							}
+
+							// Skip if we're not inside a trait
+							if (traitName == null)
+								continue;
+
+							// If we've moved back to actor indentation, reset trait
+							if (indent <= traitIndent)
+							{
+								traitName = null;
+								inOrdersTraitBlock = false;
+								continue;
+							}
+
+							// Look for Orders or Order properties inside traits
+							if (indent > traitIndent && inOrdersTraitBlock)
+							{
+								// Parse Orders field (potentially a list)
+								if (trimmedLine.StartsWith("Orders:") || trimmedLine.StartsWith("Order:") ||
+									trimmedLine.StartsWith("OrderName:") || trimmedLine.StartsWith("DeployOrderName:") ||
+									trimmedLine.StartsWith("EnterOrderName:") || trimmedLine.StartsWith("AttackOrderName:"))
+								{
+									var colonPos = trimmedLine.IndexOf(':');
+									var value = trimmedLine.Substring(colonPos + 1).Trim();
+
+									// Check if it's a list [value1, value2, ...]
+									if (value.StartsWith('[') && value.EndsWith(']'))
+									{
+										var ordersList = value.Trim('[', ']')
+											.Split(',')
+											.Select(o => o.Trim().Trim('"', '\''))
+											.Where(o => !string.IsNullOrWhiteSpace(o));
+
+										foreach (var order in ordersList)
+										{
+											actorOrders[actorName].Add(order);
+											allOrders.Add(order);
+										}
+									}
+									// Single value
+									else
+									{
+										var order = value.Trim().Trim('"', '\'');
+										if (!string.IsNullOrWhiteSpace(order))
+										{
+											actorOrders[actorName].Add(order);
+											allOrders.Add(order);
+										}
+									}
+								}
+								// Look for OrderID field in targeter classes
+								else if (trimmedLine.StartsWith("OrderID:"))
+								{
+									var value = trimmedLine.Substring("OrderID:".Length).Trim().Trim('"', '\'');
+									if (!string.IsNullOrWhiteSpace(value))
+									{
+										actorOrders[actorName].Add(value);
+										allOrders.Add(value);
+									}
+								}
+							}
+						}
+					}
+					processedFiles++;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Skipping {Path.GetFileName(file)}: {ex.Message}");
+					skippedFiles++;
+				}
+			}
+
+			// Display results
+			Console.WriteLine($"\nProcessed {processedFiles} files, skipped {skippedFiles} files.");
+			Console.WriteLine("\nAll unique orders found in Red Alert mod:");
+			Console.WriteLine("=====================================");
+			foreach (var order in allOrders.OrderBy(o => o))
+			{
+				Console.WriteLine(order);
+			}
+
+			Console.WriteLine($"\nFound {allOrders.Count} unique orders across {actorOrders.Count} actor types.");
+
+			Console.WriteLine("\nWould you like to see which actors support which orders? (y/n)");
+			if (Console.ReadKey().Key == ConsoleKey.Y)
+			{
+				Console.WriteLine("\n\nActors and their supported orders:");
+				Console.WriteLine("================================");
+				foreach (var actor in actorOrders.OrderBy(a => a.Key))
+				{
+					if (actor.Value.Count > 0)
+					{
+						Console.WriteLine($"\n{actor.Key}:");
+						foreach (var order in actor.Value.OrderBy(o => o))
+						{
+							Console.WriteLine($"  - {order}");
+						}
+					}
+				}
+			}
+		}
+
+		static string[] GetOrderTraitNames()
+		{
+			return new[]
+			{
+				"Mobile", "AttackBase", "Attack", "Harvester", "Transforms", "TransformsInto",
+				"Passenger", "Cargo", "EntersTunnels", "Demolition", "Capturable", "CaptureManager",
+				"SelfHealing", "Repairable", "Rearmable", "ReloadAmmo", "Resupply", "Aircraft",
+				"DockManager", "Dock", "Production", "GrantExternalConditionPower", "ChronoshiftPower",
+				"IronCurtainPower", "SonarPulsePower", "ParatroopersPower", "NukePower", "Sellable",
+				"Guard", "Huntable", "ProximityCaptor", "Spy", "Infiltrates", "Engineer",
+				"RepairsBridges", "Building", "Carryall", "Chronoshiftable", "IronCurtainable",
+				"GpsPower", "AirstrikePower", "SupportPower", "MadTank", "GrantConditionOnDeploy",
+				"DeployToUpgrade", "CashTrickler", "AutoTarget", "WithSpriteBody", "WithMakeAnimation",
+				"ProvidesPrerequisite", "RequiresPrerequisite"
+			};
+		}
+
+		static void AddKnownOrderTypes(HashSet<string> allOrders)
+		{
+			// Common orders
+			var commonOrders = new[] {
+				"Move", "Attack", "Stop", "Scatter", "Deploy", "DeployTransform", "Sell", "Repair",
+				"Power", "Production", "Guard", "Harvest", "Enter", "EnterTransport", "Unload",
+				"Demolish", "Capture", "Infiltrate", "C4", "AttackMove", "DeployToUpgrade", "Dock",
+				"ReturnToBase", "GrantConditionOnDeploy", "GrantUpgrade", "StartBuildingRepair",
+				"PlaceBuilding", "Heal", "Chronosphere", "IronCurtain", "RepairBridge", "Steal"
+			};
+
+			// Special powers
+			var specialPowers = new[] {
+				"Chronoshift", "IronCurtain", "GpsPower", "ParatroopersPower", "NukePower",
+				"Detonate", "DetonateAttack", "Sonar", "SpyPlane", "Airstrike", "AdvancedChronoshift"
+			};
+
+			foreach (var order in commonOrders.Concat(specialPowers))
+				allOrders.Add(order);
+		}
+
+		static void AddTraitSpecificOrders(string actorName, string traitName, Dictionary<string, HashSet<string>> actorOrders, HashSet<string> allOrders)
+		{
+			var traitOrderMap = new Dictionary<string, string[]>
+			{
+				{ "Mobile", new[] { "Move", "Stop", "Scatter", "AttackMove" } },
+				{ "AttackBase", new[] { "Attack" } },
+				{ "Attack", new[] { "Attack" } },
+				{ "Transforms", new[] { "Deploy", "DeployTransform" } },
+				{ "Production", new[] { "Production", "PlaceBuilding" } },
+				{ "Sellable", new[] { "Sell" } },
+				{ "Harvester", new[] { "Harvest", "ReturnToBase" } },
+				{ "Cargo", new[] { "Enter", "EnterTransport", "Unload", "Exit" } },
+				{ "Passenger", new[] { "Enter", "EnterTransport", "Unload", "Exit" } },
+				{ "Capturable", new[] { "Capture" } },
+				{ "Engineer", new[] { "Capture" } },
+				{ "Demolition", new[] { "C4" } },
+				{ "Guard", new[] { "Guard" } },
+				{ "Spy", new[] { "Infiltrate" } },
+				{ "Infiltrates", new[] { "Infiltrate" } },
+				{ "ChronoshiftPower", new[] { "Chronoshift" } },
+				{ "IronCurtainPower", new[] { "IronCurtain" } },
+				{ "NukePower", new[] { "NukePower" } },
+				{ "ParatroopersPower", new[] { "ParatroopersPower" } },
+				{ "MadTank", new[] { "Detonate", "DetonateAttack" } },
+				{ "Dock", new[] { "Dock", "Repair" } },
+				{ "DockManager", new[] { "Dock", "Repair" } },
+				{ "Repairable", new[] { "Repair" } },
+				{ "RepairsBridges", new[] { "RepairBridge" } },
+				{ "GrantConditionOnDeploy", new[] { "DeployToUpgrade" } }
+			};
+
+			foreach (var mapping in traitOrderMap)
+			{
+				if (traitName.StartsWith(mapping.Key))
+				{
+					foreach (var order in mapping.Value)
+					{
+						actorOrders[actorName].Add(order);
+					}
+				}
+			}
+		}
+
+		static int CountLeadingWhitespace(string line)
+		{
+			int count = 0;
+			foreach (char c in line)
+			{
+				if (c == ' ')
+					count++;
+				else if (c == '\t')
+					count += 4; // Count tabs as 4 spaces
+				else
+					break;
+			}
+			return count;
+		}
+	}
+}
