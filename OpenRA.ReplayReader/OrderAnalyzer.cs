@@ -21,29 +21,39 @@ namespace OpenRA.ReplayReader
 
     public class OrderAnalyzer
     {
-        // Common OpenRA order types for reference
+        // Complete set of OpenRA order types for reference, expanded from the Analysis tool
         public static readonly HashSet<string> MovementOrders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Move", "Stop", "Scatter", "ForceMove", "ForceMoveIntoTarget", "Infiltrate"
+            "Move", "Stop", "Scatter", "ForceMove", "ForceMoveIntoTarget", "Infiltrate",
+            "Enter", "EnterTransport", "Exit", "Unload", "Dock", "ReturnToBase",
+            "AttackMove", "AssaultMove", "Patrol"
         };
-        
+
         public static readonly HashSet<string> CombatOrders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Attack", "AttackMove", "ForceAttack", "Guard", "AssaultMove"
+            "Attack", "AttackMove", "ForceAttack", "Guard", "AssaultMove", "Detonate", "DetonateAttack",
+            "C4", "Demolish", "Explode", "TargetPoint", "TargetLineMove"
         };
-        
+
         public static readonly HashSet<string> ProductionOrders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "StartProduction", "PauseProduction", "CancelProduction", "BuildBuilding", "PlaceBuilding", 
-            "DeployTransform", "Undeploy", "PlaceObject", "DeployMcv"
+            "DeployTransform", "Undeploy", "PlaceObject", "DeployMcv", "Production", "Deploy",
+            "GrantUpgrade", "Produce", "BuildArms", "BuildNaval", "BuildVehicle", "BuildAircraft",
+            "BuildBuilding", "TrainInfantry", "SetPrimaryBuilding", "QueueUnit", "StartConstruction", 
+            "ToggleProduction"
         };
-        
+
         public static readonly HashSet<string> SupportOrders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Power", "Repair", "Sell", "Capture", "Heal", "SetRallyPoint", "Harvest", 
-            "ReturnToRefinery", "DeliverCash", "DeliverExperience", "ToggleProduction"
+            "ReturnToRefinery", "DeliverCash", "DeliverExperience", "ToggleProduction",
+            "Chronoshift", "IronCurtain", "GpsPower", "ParatroopersPower", "NukePower",
+            "Sonar", "SpyPlane", "Airstrike", "AdvancedChronoshift", "GrantExternalCondition",
+            "RepairBridge", "Steal", "Infiltrate", "Disguise", "Demolish", "DeployTransform",
+            "DeployToUpgrade", "Chronosphere", "IronCurtain", "NukePowerInfoOrder", "DropSpecialPower"
         };
-        
+
         // Order categorization
         public static string CategorizeOrder(string orderType)
         {
