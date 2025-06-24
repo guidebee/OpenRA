@@ -148,59 +148,149 @@ namespace OpenRA.ReplayReader
             {
                 Console.WriteLine($"Successfully extracted {orders.Count} orders from the replay file.");
                 
-                // Ask if the user wants to see detailed order analysis
-                Console.WriteLine("\nWould you like to see detailed order analysis? (Y/N)");
-                var response = Console.ReadLine()?.Trim().ToUpper();
+                // Create player name dictionary for visualizations
+                var playerNames = new Dictionary<int, string>();
                 
-                if (response == "Y")
+                // If metadata is available, use player names from it
+                if (metadata != null && metadata.GameInfo.Players.Length > 0)
                 {
-                    OrderAnalyzer.AnalyzeAndPrintOrderStatistics(orders);
-                    
-                    // Generate and display timeline visualizations
-                    Console.WriteLine("\nWould you like to see timeline visualizations? (Y/N)");
-                    response = Console.ReadLine()?.Trim().ToUpper();
-                    
-                    if (response == "Y")
+                    int clientId = 0;
+                    foreach (var player in metadata.GameInfo.Players)
                     {
-                        // Create player name dictionary for visualizations
-                        var playerNames = new Dictionary<int, string>();
-                        
-                        // If metadata is available, use player names from it
-                        if (metadata != null && metadata.GameInfo.Players.Length > 0)
+                        var name = metadata.GameInfo.ResolvedPlayerName(player);
+                        if (!string.IsNullOrEmpty(name))
                         {
-                            int clientId = 0;
-                            foreach (var player in metadata.GameInfo.Players)
-                            {
-                                var name = metadata.GameInfo.ResolvedPlayerName(player);
-                                if (!string.IsNullOrEmpty(name))
-                                {
-                                    playerNames[clientId] = name;
-                                    clientId++;
-                                }
-                            }
+                            playerNames[clientId] = name;
+                            clientId++;
                         }
-                        else
-                        {
-                            // If no metadata, use default player names
-                            var playerIds = orders
-                                .Select(o => o.ClientId)
-                                .Distinct()
-                                .OrderBy(id => id)
-                                .ToList();
-                            
-                            foreach (var id in playerIds)
-                            {
-                                playerNames[id] = $"Player {id}";
-                            }
-                        }
+                    }
+                }
+                else
+                {
+                    // If no metadata, use default player names
+                    var playerIds = orders
+                        .Select(o => o.ClientId)
+                        .Distinct()
+                        .OrderBy(id => id)
+                        .ToList();
+                    
+                    foreach (var id in playerIds)
+                    {
+                        playerNames[id] = $"Player {id}";
+                    }
+                }
+                
+                // Fix for categorization of AttackMove orders for visualization
+                Console.WriteLine("\n=== Combat Order Detection Fix ===");
+                var originalAttackMoveCount = orders.Count(o => o.OrderType.Equals("AttackMove", StringComparison.OrdinalIgnoreCase));
+                var attackMoveFixedOrders = new List<OrderInfo>(orders);
+                
+                // Count before we fix anything
+                var categorizedAsCombatBefore = attackMoveFixedOrders.Count(o => 
+                    o.OrderType.Equals("AttackMove", StringComparison.OrdinalIgnoreCase) && 
+                    OrderAnalyzer.CategorizeOrder(o.OrderType) == "Combat");
+                
+                // Create a custom categorizer for visualization only
+                var combatPrioritizedOrders = new List<OrderInfo>();
+                foreach (var order in orders)
+                {
+                    var newOrder = new OrderInfo
+                    {
+                        Frame = order.Frame,
+                        ClientId = order.ClientId,
+                        OrderType = order.OrderType,
+                        HasSubject = order.HasSubject,
+                        HasTarget = order.HasTarget,
+                        IsQueued = order.IsQueued,
+                        SubjectActorId = order.SubjectActorId,
+                        TargetString = order.TargetString,
+                        ExtraData = order.ExtraData
+                    };
+                    
+                    // Special handling: Force AttackMove to be Combat
+                    if (order.OrderType.Equals("AttackMove", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Add a special marker to make sure these are categorized as combat
+                        newOrder.OrderType = "Combat_AttackMove";
+                    }
+                    
+                    combatPrioritizedOrders.Add(newOrder);
+                }
+                
+                Console.WriteLine($"Original AttackMove orders: {originalAttackMoveCount}");
+                Console.WriteLine($"Categorized as Combat before fix: {categorizedAsCombatBefore}");
+                Console.WriteLine($"Fixed for visualization: {combatPrioritizedOrders.Count(o => o.OrderType == "Combat_AttackMove")}");
+                
+                // Generate filtered timeline with game actions only (excluding network orders)
+                var gameplayOrders = combatPrioritizedOrders.Where(o => 
+                    !OrderAnalyzer.NetworkOrders.Contains(o.OrderType) &&
+                    !o.OrderType.StartsWith("Unknown_")).ToList();
+                
+                // Analyze and display full order statistics
+                OrderAnalyzer.AnalyzeAndPrintOrderStatistics(orders);
+                
+                // Generate timelines and visualizations
+                var orderTimeline = OrderAnalyzer.GenerateOrderTimelineByCategory(orders, 30);
+                
+                // Skip empty frames at the beginning
+                var firstNonEmptyFrame = orderTimeline
+                    .Where(kvp => kvp.Value.Values.Sum() > 0)
+                    .Select(kvp => kvp.Key)
+                    .DefaultIfEmpty(0)
+                    .Min();
+                
+                Console.WriteLine($"\n=== Full Timeline (including network orders, starting from frame {firstNonEmptyFrame}) ===");
+                OrderAnalyzer.PrintOrderTimelineVisualization(
+                    orderTimeline.Where(kvp => kvp.Key >= firstNonEmptyFrame).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+                
+                // Filter out network orders for a clearer view of gameplay
+                if (gameplayOrders.Any())
+                {
+                    Console.WriteLine("\n=== Gameplay Timeline (excluding network orders) ===");
+                    var filteredTimeline = OrderAnalyzer.GenerateGameplayTimelineByCategory(gameplayOrders, 30);
+                    OrderAnalyzer.PrintGameplayTimelineVisualization(filteredTimeline);
+                    
+                    // Print a special fixed version for combat orders
+                    Console.WriteLine("\n=== Combat Orders Timeline ===");
+                    var combatOnlyOrders = gameplayOrders.Where(o => 
+                        o.OrderType == "Combat_AttackMove" || 
+                        OrderAnalyzer.CombatOrders.Contains(o.OrderType))
+                        .ToList();
+                    
+                    if (combatOnlyOrders.Any())
+                    {
+                        var combatTimeline = OrderAnalyzer.GenerateSpecializedTimeline(combatOnlyOrders, 30);
+                        OrderAnalyzer.PrintSpecializedTimelineVisualization(combatTimeline, "Combat Orders");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No combat orders found to display.");
+                    }
+                }
+                
+                // Generate player activity timeline
+                var playerTimeline = OrderAnalyzer.GenerateOrderTimelineByPlayer(orders, 30);
+                OrderAnalyzer.PrintPlayerActivityVisualization(playerTimeline, playerNames);
+                
+                // Analyze a specific area of interest if many combat orders are present
+                var combatOrders = orders.Where(o => OrderAnalyzer.CombatOrders.Contains(o.OrderType)).ToList();
+                if (combatOrders.Count > 5) 
+                {
+                    // Find peak combat frame
+                    var peakCombatFrame = combatOrders
+                        .GroupBy(o => o.Frame / 300)
+                        .OrderByDescending(g => g.Count())
+                        .FirstOrDefault()?.Key * 300 ?? 0;
+                    
+                    if (peakCombatFrame > 0)
+                    {
+                        Console.WriteLine($"\n=== Combat Activity Detail (around frame {peakCombatFrame}) ===");
+                        var combatTimelineRange = orders
+                            .Where(o => o.Frame >= peakCombatFrame - 300 && o.Frame <= peakCombatFrame + 300)
+                            .ToList();
                         
-                        // Generate order timeline
-                        var orderTimeline = OrderAnalyzer.GenerateOrderTimelineByCategory(orders);
-                        OrderAnalyzer.PrintOrderTimelineVisualization(orderTimeline);
-                        
-                        // Generate player activity timeline
-                        var playerTimeline = OrderAnalyzer.GenerateOrderTimelineByPlayer(orders);
-                        OrderAnalyzer.PrintPlayerActivityVisualization(playerTimeline, playerNames);
+                        var combatTimeline = OrderAnalyzer.GenerateOrderTimelineByCategory(combatTimelineRange, 30);
+                        OrderAnalyzer.PrintOrderTimelineVisualization(combatTimeline);
                     }
                 }
             }
