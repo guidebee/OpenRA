@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OpenRA.ReplayReader": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Workspace\\OpenRA\\OpenRA.ReplayReader\\ra-2025-06-21T035849Z.orarep"
+    }
+  }
+}
