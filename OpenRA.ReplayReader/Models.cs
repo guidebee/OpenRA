@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace OpenRA.ReplayReader
 {
@@ -84,6 +85,48 @@ namespace OpenRA.ReplayReader
             X = x;
             Y = y;
             Z = z;
+        }
+    }
+
+    public class OrderInfo
+    {
+        public int Frame { get; set; }
+        public int ClientId { get; set; }
+        public string OrderType { get; set; }
+        public string TargetString { get; set; }
+        public bool HasSubject { get; set; }
+        public bool HasTarget { get; set; }
+        public bool IsQueued { get; set; }
+        public int? SubjectActorId { get; set; }
+        public string ExtraData { get; set; }
+
+        // Property to store decoded ExtraData
+        public string DecodedExtraData => OrderDecoder.DecodeOrderExtraData(OrderType, ExtraData);
+        
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"Frame: {Frame}, ClientId: {ClientId}, OrderType: {OrderType}");
+            
+            if (HasSubject)
+                sb.AppendLine($"Subject: {SubjectActorId}");
+                
+            if (HasTarget)
+                sb.AppendLine("Has Target");
+                
+            if (IsQueued)
+                sb.AppendLine("Queued");
+                
+            if (!string.IsNullOrEmpty(TargetString))
+                sb.AppendLine($"Target: {TargetString}");
+                
+            if (!string.IsNullOrEmpty(ExtraData))
+            {
+                sb.AppendLine("Extra Data:");
+                sb.AppendLine(DecodedExtraData);
+            }
+            
+            return sb.ToString().TrimEnd();
         }
     }
 }

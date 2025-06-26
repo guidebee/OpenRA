@@ -12,6 +12,7 @@
     <ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
     <ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj" />
     <ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj" />
+    <ProjectReference Include="..\OpenRA.Analysis\OpenRA.Analysis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
