@@ -2,7 +2,7 @@
   "profiles": {
     "OpenRA.ReplayReader": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Workspace\\OpenRA\\OpenRA.ReplayReader\\ra-2025-06-24T125128Z.orarep"
+      "commandLineArgs": "extract-orders C:\\Workspace\\OpenRA\\OpenRA.ReplayReader\\ra-2025-06-24T125128Z.orarep"
     }
   }
 }
