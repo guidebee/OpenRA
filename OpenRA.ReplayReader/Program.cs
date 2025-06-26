@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace OpenRA.ReplayReader
 {
@@ -56,6 +57,22 @@ namespace OpenRA.ReplayReader
             Console.ReadKey();
         }
         
+        static void SaveOrdersToJson(string replayPath, List<OrderInfo> orders)
+        {
+            var jsonFilePath = Path.ChangeExtension(replayPath, ".json");
+
+            try
+            {
+                var json = JsonSerializer.Serialize(orders, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(jsonFilePath, json);
+                Console.WriteLine($"Orders saved to JSON file: {jsonFilePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving orders to JSON: {ex.Message}");
+            }
+        }
+
         static void AnalyzeReplayFile(string replayPath)
         {
             Console.WriteLine($"Analyzing replay: {replayPath}");
@@ -148,6 +165,9 @@ namespace OpenRA.ReplayReader
             {
                 Console.WriteLine($"Successfully extracted {orders.Count} orders from the replay file.");
                 
+                // Save orders to JSON
+                SaveOrdersToJson(replayPath, orders);
+
                 // Create player name dictionary for visualizations
                 var playerNames = new Dictionary<int, string>();
                 
