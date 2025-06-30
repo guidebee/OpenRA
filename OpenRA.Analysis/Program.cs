@@ -64,8 +64,9 @@ namespace OpenRA.Analysis
 				Console.WriteLine("3. Show order examples");
 				Console.WriteLine("4. Show network flow for orders");
 				Console.WriteLine("5. List all IIssueOrder implementations");
-				Console.WriteLine("6. Exit");
-				Console.Write("\nEnter your choice (1-6): ");
+				Console.WriteLine("6. Analyze traits from YAML files");
+				Console.WriteLine("7. Exit");
+				Console.Write("\nEnter your choice (1-7): ");
 
 				var choice = Console.ReadLine();
 				Console.WriteLine();
@@ -91,6 +92,9 @@ namespace OpenRA.Analysis
 							ListAllIIssueOrderImplementations();
 							break;
 						case "6":
+							AnalyzeTraits(modPath);
+							break;
+						case "7":
 							continueRunning = false;
 							break;
 						default:
@@ -363,6 +367,313 @@ namespace OpenRA.Analysis
 					}
 				}
 			}
+		}
+
+		static void AnalyzeTraits(string modPath)
+		{
+			string rulesPath = Path.Combine(modPath, "rules");
+
+			if (!Directory.Exists(rulesPath))
+			{
+				Console.WriteLine($"Error: Rules directory not found at '{rulesPath}'");
+				return;
+			}
+
+			// Will contain all actor types and their traits
+			var actorTraits = new Dictionary<string, HashSet<string>>();
+
+			// Will contain all unique trait types
+			var allTraits = new HashSet<string>();
+
+			// Process all YAML files in the rules directory and subdirectories
+			Console.WriteLine("Scanning YAML files for trait definitions...");
+			int processedFiles = 0;
+			int skippedFiles = 0;
+
+			// Use a manual approach to parse the YAML since OpenRA's format is not fully compliant with YAML spec
+			foreach (var file in Directory.GetFiles(rulesPath, "*.yaml", SearchOption.AllDirectories))
+			{
+				try
+				{
+					// Simple parsing approach for OpenRA-style YAML
+					using (var reader = new StreamReader(file))
+					{
+						string actorName = null;
+						int actorIndent = -1;
+
+						string line;
+						while ((line = reader.ReadLine()) != null)
+						{
+							// Skip comments and empty lines
+							if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith('#'))
+								continue;
+
+							// Count leading spaces/tabs for indentation level
+							int indent = CountLeadingWhitespace(line);
+							string trimmedLine = line.Trim();
+
+							// Actor definition (top level)
+							if (indent == 0 && trimmedLine.EndsWith(':'))
+							{
+								actorName = trimmedLine.TrimEnd(':');
+								actorIndent = indent;
+
+								if (!actorTraits.ContainsKey(actorName))
+									actorTraits[actorName] = new HashSet<string>();
+
+								continue;
+							}
+
+							// Skip if we're not inside an actor definition
+							if (actorName == null)
+								continue;
+
+							// If we've moved back to a previous indentation level, reset accordingly
+							if (indent <= actorIndent)
+							{
+								actorName = null;
+								continue;
+							}
+
+							// Trait definition (inside actor)
+							if (indent > actorIndent && trimmedLine.EndsWith(':'))
+							{
+								var traitName = trimmedLine.TrimEnd(':');
+								
+								// Skip certain pseudo-traits like Inherits or -Name
+								if (traitName == "Inherits" || traitName == "-Name" || traitName == "Name" || 
+									traitName == "Tooltip" || traitName == "Buildable" || traitName == "Valued")
+									continue;
+                                
+								// If it has a dash prefix, it's removing a trait
+								if (traitName.StartsWith('-'))
+									continue;
+
+								// If it has an @ suffix, extract the base trait name
+								int atPos = traitName.IndexOf('@');
+								if (atPos > 0)
+									traitName = traitName.Substring(0, atPos);
+
+								actorTraits[actorName].Add(traitName);
+								allTraits.Add(traitName);
+							}
+						}
+					}
+					processedFiles++;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Skipping {Path.GetFileName(file)}: {ex.Message}");
+					skippedFiles++;
+				}
+			}
+
+			// Get common trait info from assemblies for documentation
+			var traitDescriptions = GetTraitDescriptions();
+
+			// Display results
+			Console.WriteLine($"\nProcessed {processedFiles} files, skipped {skippedFiles} files.");
+			Console.WriteLine($"\nFound {allTraits.Count} unique traits across {actorTraits.Count} actor types.");
+
+			Console.WriteLine("\nAll unique traits found in Red Alert mod:");
+			Console.WriteLine("=====================================");
+			foreach (var trait in allTraits.OrderBy(t => t))
+			{
+				if (traitDescriptions.TryGetValue(trait, out var description))
+					Console.WriteLine($"{trait} - {description}");
+				else
+					Console.WriteLine(trait);
+			}
+
+			Console.WriteLine("\nWould you like to see which actors have which traits? (y/n)");
+			if (Console.ReadKey().Key == ConsoleKey.Y)
+			{
+				Console.WriteLine("\n\nSelect an option:");
+				Console.WriteLine("1. View all actors and their traits");
+				Console.WriteLine("2. Search for a specific actor");
+				Console.WriteLine("3. Search for actors with a specific trait");
+				Console.Write("\nEnter your choice (1-3): ");
+
+				var choice = Console.ReadLine();
+				Console.WriteLine();
+
+				switch (choice)
+				{
+					case "1":
+						Console.WriteLine("\nActors and their traits:");
+						Console.WriteLine("=======================");
+						foreach (var actor in actorTraits.OrderBy(a => a.Key))
+						{
+							if (actor.Value.Count > 0)
+							{
+								Console.WriteLine($"\n{actor.Key}:");
+								foreach (var trait in actor.Value.OrderBy(t => t))
+								{
+									Console.WriteLine($"  - {trait}");
+								}
+							}
+						}
+						break;
+
+					case "2":
+						Console.Write("Enter actor name to search for (partial matches supported): ");
+						var actorSearch = Console.ReadLine();
+						
+						var matchingActors = actorTraits.Keys
+							.Where(k => k.Contains(actorSearch, StringComparison.OrdinalIgnoreCase))
+							.OrderBy(k => k)
+							.ToList();
+
+						if (matchingActors.Count == 0)
+						{
+							Console.WriteLine($"No actors found matching '{actorSearch}'");
+						}
+						else
+						{
+							Console.WriteLine($"\nFound {matchingActors.Count} matching actors:");
+							foreach (var actor in matchingActors)
+							{
+								Console.WriteLine($"\n{actor}:");
+								foreach (var trait in actorTraits[actor].OrderBy(t => t))
+								{
+									Console.WriteLine($"  - {trait}");
+								}
+							}
+						}
+						break;
+
+					case "3":
+						Console.Write("Enter trait name to search for (partial matches supported): ");
+						var traitSearch = Console.ReadLine();
+						
+						var matchingTraits = allTraits
+							.Where(t => t.Contains(traitSearch, StringComparison.OrdinalIgnoreCase))
+							.OrderBy(t => t)
+							.ToList();
+
+						if (matchingTraits.Count == 0)
+						{
+							Console.WriteLine($"No traits found matching '{traitSearch}'");
+						}
+						else
+						{
+							Console.WriteLine($"\nFound {matchingTraits.Count} matching traits:");
+							foreach (var trait in matchingTraits)
+							{
+								Console.WriteLine($"\n{trait}:");
+								Console.WriteLine("Used by these actors:");
+								var actorsWithTrait = actorTraits
+									.Where(a => a.Value.Contains(trait))
+									.Select(a => a.Key)
+									.OrderBy(a => a)
+									.ToList();
+									
+								if (actorsWithTrait.Count > 0)
+								{
+									foreach (var actor in actorsWithTrait)
+									{
+										Console.WriteLine($"  - {actor}");
+									}
+								}
+								else
+								{
+									Console.WriteLine("  (No actors use this trait directly)");
+								}
+							}
+						}
+						break;
+
+					default:
+						Console.WriteLine("Invalid choice.");
+						break;
+				}
+			}
+
+			// Offer an option to export to a file
+			Console.WriteLine("\nWould you like to export all trait data to a file? (y/n)");
+			if (Console.ReadKey().Key == ConsoleKey.Y)
+			{
+				Console.WriteLine("\nExporting data...");
+				var outputPath = Path.Combine(Environment.CurrentDirectory, "TraitAnalysis.txt");
+				
+				using (var writer = new StreamWriter(outputPath))
+				{
+					writer.WriteLine("OpenRA Trait Analysis");
+					writer.WriteLine("====================");
+					writer.WriteLine($"Mod Path: {modPath}");
+					writer.WriteLine($"Date: {DateTime.Now}");
+					writer.WriteLine($"Found {allTraits.Count} unique traits across {actorTraits.Count} actor types.\n");
+					
+					writer.WriteLine("All Traits:");
+					writer.WriteLine("===========");
+					foreach (var trait in allTraits.OrderBy(t => t))
+					{
+						if (traitDescriptions.TryGetValue(trait, out var description))
+							writer.WriteLine($"{trait} - {description}");
+						else
+							writer.WriteLine(trait);
+					}
+					
+					writer.WriteLine("\nActors and their Traits:");
+					writer.WriteLine("======================");
+					foreach (var actor in actorTraits.OrderBy(a => a.Key))
+					{
+						if (actor.Value.Count > 0)
+						{
+							writer.WriteLine($"\n{actor.Key}:");
+							foreach (var trait in actor.Value.OrderBy(t => t))
+							{
+								writer.WriteLine($"  - {trait}");
+							}
+						}
+					}
+				}
+				
+				Console.WriteLine($"Data exported to: {outputPath}");
+			}
+		}
+
+		private static Dictionary<string, string> GetTraitDescriptions()
+		{
+			var descriptions = new Dictionary<string, string>();
+			
+			try
+			{
+				// Get descriptions from assemblies
+				var commonAssembly = typeof(OpenRA.Mods.Common.Traits.Mobile).Assembly;
+				var traitInfos = commonAssembly.GetTypes()
+					.Where(t => typeof(TraitInfo).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+					.ToList();
+				
+				foreach (var traitInfo in traitInfos)
+				{
+					var name = traitInfo.Name;
+					if (name.EndsWith("Info"))
+						name = name.Substring(0, name.Length - 4);
+					
+					// Try to get description from DescAttribute
+					var descAttrs = traitInfo.GetCustomAttributes(typeof(DescAttribute), false)
+						.Cast<DescAttribute>()
+						.FirstOrDefault();
+					
+					if (descAttrs != null && descAttrs.Lines.Length > 0)
+					{
+						descriptions[name] = string.Join(" ", descAttrs.Lines);
+					}
+					else
+					{
+						// Create description from class name by adding spaces before capital letters
+						var autoDesc = Regex.Replace(name, "([a-z])([A-Z])", "$1 $2");
+						descriptions[name] = autoDesc;
+					}
+				}
+			}
+			catch
+			{
+				// Ignore errors in getting descriptions
+			}
+			
+			return descriptions;
 		}
 
 		static string[] GetOrderTraitNames()
