@@ -65,8 +65,9 @@ namespace OpenRA.Analysis
 				Console.WriteLine("4. Show network flow for orders");
 				Console.WriteLine("5. List all IIssueOrder implementations");
 				Console.WriteLine("6. Analyze traits from YAML files");
-				Console.WriteLine("7. Exit");
-				Console.Write("\nEnter your choice (1-7): ");
+				Console.WriteLine("7. Analyze actor inheritance");
+				Console.WriteLine("8. Exit");
+				Console.Write("\nEnter your choice (1-8): ");
 
 				var choice = Console.ReadLine();
 				Console.WriteLine();
@@ -95,6 +96,9 @@ namespace OpenRA.Analysis
 							AnalyzeTraits(modPath);
 							break;
 						case "7":
+							AnalyzeActorInheritance(modPath);
+							break;
+						case "8":
 							continueRunning = false;
 							break;
 						default:
@@ -770,6 +774,381 @@ namespace OpenRA.Analysis
 					break;
 			}
 			return count;
+		}
+
+		static void AnalyzeActorInheritance(string modPath)
+		{
+			string rulesPath = Path.Combine(modPath, "rules");
+
+			if (!Directory.Exists(rulesPath))
+			{
+				Console.WriteLine($"Error: Rules directory not found at '{rulesPath}'");
+				return;
+			}
+
+			// Map of actor name to its direct parents
+			var inheritanceMap = new Dictionary<string, HashSet<string>>();
+			
+			// Map of actor name to actors that inherit from it
+			var reverseInheritanceMap = new Dictionary<string, HashSet<string>>();
+
+			// Process all YAML files in the rules directory and subdirectories
+			Console.WriteLine("Scanning YAML files for actor inheritance...");
+			int processedFiles = 0;
+			int skippedFiles = 0;
+
+			foreach (var file in Directory.GetFiles(rulesPath, "*.yaml", SearchOption.AllDirectories))
+			{
+				try
+				{
+					using (var reader = new StreamReader(file))
+					{
+						string currentActor = null;
+						int actorIndent = -1;
+
+						string line;
+						while ((line = reader.ReadLine()) != null)
+						{
+							// Skip comments and empty lines
+							if (string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith('#'))
+								continue;
+
+							// Count leading spaces/tabs for indentation level
+							int indent = CountLeadingWhitespace(line);
+							string trimmedLine = line.Trim();
+
+							// Actor definition (top level)
+							if (indent == 0 && trimmedLine.EndsWith(':'))
+							{
+								currentActor = trimmedLine.TrimEnd(':');
+								actorIndent = indent;
+
+								if (!inheritanceMap.ContainsKey(currentActor))
+									inheritanceMap[currentActor] = new HashSet<string>();
+
+								continue;
+							}
+
+							// Skip if we're not inside an actor definition
+							if (currentActor == null)
+								continue;
+
+							// If we've moved back to a previous indentation level, reset actor
+							if (indent <= actorIndent)
+							{
+								currentActor = null;
+								continue;
+							}
+
+							// Look for Inherits lines
+							if (indent > actorIndent && trimmedLine.StartsWith("Inherits"))
+							{
+								var colonPos = trimmedLine.IndexOf(':');
+								if (colonPos > -1)
+								{
+									var value = trimmedLine.Substring(colonPos + 1).Trim().Trim('"', '\'');
+									if (!string.IsNullOrWhiteSpace(value))
+									{
+										// Add inheritance relationship
+										inheritanceMap[currentActor].Add(value);
+										
+										// Add to reverse map
+										if (!reverseInheritanceMap.ContainsKey(value))
+											reverseInheritanceMap[value] = new HashSet<string>();
+										reverseInheritanceMap[value].Add(currentActor);
+									}
+								}
+							}
+						}
+					}
+					processedFiles++;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Skipping {Path.GetFileName(file)}: {ex.Message}");
+					skippedFiles++;
+				}
+			}
+
+			Console.WriteLine($"\nProcessed {processedFiles} files, skipped {skippedFiles} files.");
+			Console.WriteLine($"Found {inheritanceMap.Count} actor definitions with inheritance relationships.\n");
+
+			// Display hierarchy options
+			bool showingHierarchy = true;
+			while (showingHierarchy)
+			{
+				Console.WriteLine("\nSelect how to view the actor hierarchy:");
+				Console.WriteLine("1. Show complete hierarchy");
+				Console.WriteLine("2. Show inheritance tree for specific actor");
+				Console.WriteLine("3. Show actors that inherit from a specific actor");
+				Console.WriteLine("4. Export hierarchy diagram to file");
+				Console.WriteLine("5. Return to main menu");
+				Console.Write("\nEnter your choice (1-5): ");
+
+				var choice = Console.ReadLine();
+				Console.WriteLine();
+
+				switch (choice)
+				{
+					case "1":
+						ShowCompleteHierarchy(inheritanceMap);
+						break;
+
+					case "2":
+						Console.Write("Enter actor name (partial matches supported): ");
+						var actorSearch = Console.ReadLine();
+						
+						var matchingActors = inheritanceMap.Keys
+							.Where(k => k.Contains(actorSearch, StringComparison.OrdinalIgnoreCase))
+							.OrderBy(k => k)
+							.ToList();
+
+						if (matchingActors.Count == 0)
+						{
+							Console.WriteLine($"No actors found matching '{actorSearch}'");
+						}
+						else if (matchingActors.Count > 1)
+						{
+							Console.WriteLine($"\nFound {matchingActors.Count} matching actors:");
+							foreach (var actor in matchingActors)
+								Console.WriteLine($"- {actor}");
+								
+							Console.Write("\nEnter exact actor name from the list above: ");
+							var exactActor = Console.ReadLine();
+							if (inheritanceMap.ContainsKey(exactActor))
+								ShowActorHierarchy(exactActor, inheritanceMap);
+							else
+								Console.WriteLine("Invalid actor name.");
+						}
+						else
+						{
+							ShowActorHierarchy(matchingActors[0], inheritanceMap);
+						}
+						break;
+
+					case "3":
+						Console.Write("Enter actor name (partial matches supported): ");
+						actorSearch = Console.ReadLine();
+						
+						matchingActors = reverseInheritanceMap.Keys
+							.Where(k => k.Contains(actorSearch, StringComparison.OrdinalIgnoreCase))
+							.OrderBy(k => k)
+							.ToList();
+
+						if (matchingActors.Count == 0)
+						{
+							Console.WriteLine($"No actors found matching '{actorSearch}'");
+						}
+						else if (matchingActors.Count > 1)
+						{
+							Console.WriteLine($"\nFound {matchingActors.Count} matching actors:");
+							foreach (var actor in matchingActors)
+								Console.WriteLine($"- {actor}");
+								
+							Console.Write("\nEnter exact actor name from the list above: ");
+							var exactActor = Console.ReadLine();
+							if (reverseInheritanceMap.ContainsKey(exactActor))
+								ShowInheritingActors(exactActor, reverseInheritanceMap);
+							else
+								Console.WriteLine("Invalid actor name.");
+						}
+						else
+						{
+							ShowInheritingActors(matchingActors[0], reverseInheritanceMap);
+						}
+						break;
+
+					case "4":
+						ExportHierarchyDiagram(inheritanceMap);
+						break;
+
+					case "5":
+						showingHierarchy = false;
+						break;
+
+					default:
+						Console.WriteLine("Invalid choice. Please try again.");
+						break;
+				}
+			}
+		}
+
+		static void ShowActorHierarchy(string actor, Dictionary<string, HashSet<string>> inheritanceMap)
+		{
+			Console.WriteLine($"\nInheritance hierarchy for {actor}:");
+			Console.WriteLine("============================");
+			
+			// Show what this actor inherits from (parents)
+			var parents = inheritanceMap[actor];
+			if (parents.Count > 0)
+			{
+				Console.WriteLine("Inherits from:");
+				foreach (var parent in parents.OrderBy(p => p))
+				{
+					Console.WriteLine($"  {actor} --> {parent}");
+					// Recursively show parent's inheritance
+					ShowParentInheritance(parent, inheritanceMap, "    ", actor);
+				}
+			}
+			else
+			{
+				Console.WriteLine("(Base actor - does not inherit from any other actors)");
+			}
+		}
+
+		static void ShowParentInheritance(string actor, Dictionary<string, HashSet<string>> inheritanceMap, string indent, string childActor)
+		{
+			if (inheritanceMap.TryGetValue(actor, out var parents) && parents.Count > 0)
+			{
+				foreach (var parent in parents.OrderBy(p => p))
+				{
+					Console.WriteLine($"{indent}{actor} --> {parent}");
+					ShowParentInheritance(parent, inheritanceMap, indent + "  ", actor);
+				}
+			}
+		}
+
+		static void ShowInheritingActors(string actor, Dictionary<string, HashSet<string>> reverseInheritanceMap)
+		{
+			if (!reverseInheritanceMap.ContainsKey(actor))
+			{
+				Console.WriteLine($"\nNo actors inherit from {actor}");
+				return;
+			}
+
+			Console.WriteLine($"\nActors that inherit from {actor}:");
+			Console.WriteLine("===============================");
+			
+			foreach (var child in reverseInheritanceMap[actor].OrderBy(a => a))
+				PrintInheritingActorTree(child, reverseInheritanceMap, "  ", actor);
+		}
+
+		static void PrintActorTree(string actor, Dictionary<string, HashSet<string>> inheritanceMap, string indent = "  ", string parentActor = null)
+		{
+			if (parentActor != null)
+				Console.WriteLine($"{indent}{parentActor} --> {actor}");
+			else
+				Console.WriteLine($"{indent}{actor}");
+			
+			// Find actors that inherit from this one
+			var children = inheritanceMap
+				.Where(kvp => kvp.Value.Contains(actor))
+				.Select(kvp => kvp.Key)
+				.OrderBy(k => k);
+
+			foreach (var child in children)
+				PrintActorTree(child, inheritanceMap, indent + "  ", actor);
+		}
+
+		static void PrintInheritingActorTree(string actor, Dictionary<string, HashSet<string>> reverseInheritanceMap, string indent = "  ", string parentActor = null)
+		{
+			if (parentActor != null)
+				Console.WriteLine($"{indent}{parentActor} --> {actor}");
+			else
+				Console.WriteLine($"{indent}{actor}");
+			
+			if (reverseInheritanceMap.TryGetValue(actor, out var children))
+			{
+				foreach (var child in children.OrderBy(c => c))
+					PrintInheritingActorTree(child, reverseInheritanceMap, indent + "  ", actor);
+			}
+		}
+
+		static void ShowCompleteHierarchy(Dictionary<string, HashSet<string>> inheritanceMap)
+		{
+			// Find root actors (those that don't inherit from anyone)
+			var allActors = inheritanceMap.Keys.ToHashSet();
+			var inheritedActors = inheritanceMap.Values.SelectMany(v => v).ToHashSet();
+			var rootActors = allActors.Except(inheritedActors).OrderBy(a => a).ToList();
+
+			Console.WriteLine("Complete Actor Hierarchy:");
+			Console.WriteLine("=======================");
+			
+			foreach (var root in rootActors)
+				PrintActorTree(root, inheritanceMap);
+
+			// Also show any disconnected inheritance relationships
+			var handledActors = new HashSet<string>();
+			foreach (var actor in inheritanceMap.Keys.OrderBy(k => k))
+			{
+				if (!handledActors.Contains(actor))
+				{
+					foreach (var parent in inheritanceMap[actor])
+					{
+						if (!inheritanceMap.ContainsKey(parent))
+						{
+							Console.WriteLine($"\nDisconnected inheritance:");
+							Console.WriteLine($"  {actor} --> {parent} (undefined actor)");
+							handledActors.Add(actor);
+						}
+					}
+				}
+			}
+		}
+
+		static void ExportHierarchyDiagram(Dictionary<string, HashSet<string>> inheritanceMap)
+		{
+			Console.WriteLine("Exporting actor hierarchy diagram...");
+			var outputPath = Path.Combine(Environment.CurrentDirectory, "ActorHierarchy.dot");
+			
+			using (var writer = new StreamWriter(outputPath))
+			{
+				// Write DOT file header
+				writer.WriteLine("digraph ActorHierarchy {");
+				writer.WriteLine("  rankdir=TB;");  // Top to bottom direction
+				writer.WriteLine("  node [shape=box, style=filled, fillcolor=lightgray];");
+				writer.WriteLine("  edge [dir=back];");  // Arrows point from parent to child
+				
+				// Find root nodes (no parents) and mark them differently
+				var allActors = inheritanceMap.Keys.ToHashSet();
+				var inheritedActors = inheritanceMap.Values.SelectMany(v => v).ToHashSet();
+				var rootActors = allActors.Except(inheritedActors).ToHashSet();
+				
+				// Style root nodes differently
+				foreach (var root in rootActors)
+				{
+					writer.WriteLine($"  \"{root}\" [fillcolor=lightblue];");
+				}
+				
+				// Style undefined parent nodes differently
+				var undefinedParents = inheritanceMap.Values
+					.SelectMany(v => v)
+					.Where(p => !inheritanceMap.ContainsKey(p))
+					.Distinct()
+					.ToHashSet();
+					
+				foreach (var undefined in undefinedParents)
+				{
+					writer.WriteLine($"  \"{undefined}\" [fillcolor=pink, style=\"filled,dashed\"];");
+				}
+
+				// Write inheritance relationships (reversed arrow direction for better visual hierarchy)
+				foreach (var actor in inheritanceMap)
+				{
+					foreach (var parent in actor.Value)
+					{
+						writer.WriteLine($"  \"{parent}\" -> \"{actor.Key}\";");
+					}
+				}
+
+				// Try to enforce some ordering of nodes at the same level
+				writer.WriteLine("  { rank=same; ");
+				foreach (var root in rootActors.OrderBy(r => r))
+				{
+					writer.Write($"\"{root}\"; ");
+				}
+				writer.WriteLine("}");
+				
+				writer.WriteLine("}");
+			}
+			
+			Console.WriteLine($"Exported DOT file to: {outputPath}");
+			Console.WriteLine("You can visualize this file using Graphviz or an online DOT visualizer.");
+			Console.WriteLine("The diagram shows:");
+			Console.WriteLine("- Light blue boxes: Base actors (no parents)");
+			Console.WriteLine("- Light gray boxes: Normal actors");
+			Console.WriteLine("- Pink dashed boxes: Referenced but undefined actors");
+			Console.WriteLine("Arrows point from parent to child actors.");
 		}
 	}
 }
