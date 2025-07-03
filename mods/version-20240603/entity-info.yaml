@@ -1,0 +1,239 @@
+fcom:
+  w: 2
+  h: 2
+  debugRadius: 1.5
+  debugColor: "rgb(255, 0, 255)"
+hosp:
+  w: 2
+  h: 2
+  debugRadius: 1.5
+  debugColor: "rgb(255, 0, 0)"
+miss:
+  w: 3
+  h: 2
+  debugRadius: 1.5
+  debugColor: "rgb(0, 0, 255)"
+bio:
+  w: 2
+  h: 2
+  debugRadius: 1.5
+  debugColor: "rgb(255, 64, 0)"
+oilb:
+  w: 2
+  h: 2
+  debugRadius: 1.5
+  debugColor: "rgb(128, 128, 128)"
+mine:
+  w: 1
+  h: 1
+  terrainType: Ore
+gmine:
+  w: 1
+  h: 1
+  terrainType: Gems
+
+t01:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t02:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t03:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+# t04 doesn't exist
+t05:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t06:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t07:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t08:
+  w: 1
+  h: 1
+  terrainType: Tree
+# t09 doesn't exist
+t10:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t11:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t12:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t13:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t14:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t15:
+  w: 1
+  h: 1
+  OffsetX: -1
+  OffsetY: -1
+  terrainType: Tree
+t16:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t17:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+tc01:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+tc02:
+  w: 2
+  h: 2
+  Shape: [[1, 0], [0, 1], [1, 1]]
+  terrainType: Tree
+tc03:
+  w: 2
+  h: 2
+  terrainType: Tree
+tc04:
+  w: 3
+  h: 2
+  OffsetY: -1
+  Shape: [[0, 0], [1, 0], [2, 0], [0, 1]]
+  terrainType: Tree
+tc05:
+  w: 3
+  h: 3
+  Shape: [[2, 0], [0, 1], [1, 1], [2, 1], [1, 2], [2, 2]]
+  terrainType: Tree
+
+t01.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t02.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t03.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+# t04.husk doesn't exist
+t05.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t06.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t07.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t08.husk:
+  w: 1
+  h: 1
+  terrainType: Tree
+# t09.husk doesn't exist
+t10.husk:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t11.husk:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t12.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t13.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t14.husk:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t15.husk:
+  w: 1
+  h: 1
+  OffsetX: -1
+  OffsetY: -1
+  terrainType: Tree
+t16.husk:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+t17.husk:
+  w: 1
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+tc01.husk:
+  w: 2
+  h: 1
+  OffsetY: -1
+  terrainType: Tree
+tc02.husk:
+  w: 2
+  h: 2
+  Shape: [[1, 0], [0, 1], [1, 1]]
+  terrainType: Tree
+tc03.husk:
+  w: 2
+  h: 2
+  terrainType: Tree
+tc04.husk:
+  w: 3
+  h: 2
+  OffsetY: -1
+  Shape: [[0, 0], [1, 0], [2, 0], [0, 1]]
+  terrainType: Tree
+tc05.husk:
+  w: 3
+  h: 3
+  Shape: [[2, 0], [0, 1], [1, 1], [2, 1], [1, 2], [2, 2]]
+  terrainType: Tree

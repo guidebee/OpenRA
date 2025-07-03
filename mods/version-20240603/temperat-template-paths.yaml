@@ -1,0 +1,553 @@
+"Template@3":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[4, 1], [4, 2], [3, 2], [2, 2], [1, 2], [1, 3], [0, 3]]
+  Path:   [[4, 1],         [3, 2], [2, 2], [1, 2], [1, 3], [0, 3]]
+"Template@4":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[5, 1], [5, 2], [4, 2], [4, 3], [3, 3], [3, 4], [2, 4], [1, 4], [1, 3], [0, 3]]
+  Path:   [[5, 1],         [4, 2],         [3, 3],         [2, 4], [1, 4],         [0, 3]]
+"Template@5":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 1], [3, 2], [2, 2], [1, 2], [1, 3], [0, 3]]
+  Path:   [[3, 1],         [2, 2],         [1, 3], [0, 3]]
+"Template@6":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 1], [2, 1], [1, 1], [0, 1]]
+  Path:   [[3, 1], [2, 1], [1, 1], [0, 1]]
+"Template@7":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 1], [2, 1], [1, 1], [0, 1]]
+  Path:   [[3, 1], [2, 1], [1, 1], [0, 1]]
+"Template@8":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 1], [2, 1], [1, 1], [0, 1]]
+  Path:   [[3, 1], [2, 1], [1, 1], [0, 1]]
+"Template@9":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 1], [2, 1], [1, 1], [0, 1]]
+  Path:   [[3, 1], [2, 1], [1, 1], [0, 1]]
+"Template@10":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[1, 1], [0, 1]]
+  Path:   [[1, 1], [0, 1]]
+"Template@12":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[5, 4], [4, 4], [4, 3], [3, 3], [2, 3], [1, 3], [1, 2], [0, 2], [0, 1]]
+  Path:   [[5, 4], [4, 4], [4, 3], [3, 3], [2, 3],         [1, 2],         [0, 1]]
+"Template@13":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[4, 3], [4, 4], [3, 4], [3, 3], [2, 3], [2, 2], [1, 2], [1, 1], [0, 1]]
+  Path:   [[4, 3],         [3, 4],         [2, 3], [2, 2],         [1, 1], [0, 1]]
+"Template@14":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: L
+  PathND: [[3, 3], [2, 3], [2, 2], [1, 2], [1, 1], [0, 1]]
+  Path:   [[3, 3], [2, 3],         [1, 2],         [0, 1]]
+"Template@15":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[4, 5], [4, 4], [3, 4], [3, 3], [2, 3], [1, 3], [1, 2], [1, 1], [1, 0]]
+  Path:   [[4, 5],         [3, 4],         [2, 3],         [1, 2], [1, 1], [1, 0]]
+"Template@16":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[2, 4], [1, 4], [1, 3], [1, 2], [0, 2], [0, 1], [0, 0]]
+  Path:   [[2, 4],         [1, 3], [1, 2],         [0, 1], [0, 0]]
+"Template@17":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[3, 3], [2, 3], [2, 2], [1, 2], [1, 1], [1, 0]]
+  Path:   [[3, 3],         [2, 2],         [1, 1], [1, 0]]
+"Template@18":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 3], [1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 3], [1, 2], [1, 1], [1, 0]]
+"Template@19":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[0, 1], [0, 0]]
+  Path:   [[0, 1], [0, 0]]
+"Template@21":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[0, 5], [1, 5], [1, 4], [1, 3], [0, 3], [0, 2], [1, 2], [1, 1], [2, 1], [2, 0]]
+  Path:   [[0, 5],         [1, 4],         [0, 3], [0, 2],         [1, 1],         [2, 0]]
+"Template@22":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 4], [0, 4], [0, 3], [0, 2], [0, 1], [1, 1], [2, 1], [3, 1], [3, 0]]
+  Path:   [[1, 4],         [0, 3], [0, 2],         [1, 1], [2, 1],         [3, 0]]
+"Template@23":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 3], [0, 3], [0, 2], [0, 1], [1, 1], [2, 1], [2, 0], [3, 0]]
+  Path:   [[1, 3],         [0, 2],         [1, 1], [2, 1],         [3, 0]]
+"Template@24":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [2, 2], [2, 3], [3, 3], [4, 3], [4, 4], [5, 4], [6, 4]]
+  Path:   [[0, 2], [1, 2],         [2, 3], [3, 3], [4, 3], [4, 4], [5, 4], [6, 4]]
+"Template@25":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [2, 1], [2, 2], [3, 2], [3, 3], [4, 3], [5, 3], [5, 4]]
+  Path:   [[0, 1], [1, 1],         [2, 2], [3, 2],         [4, 3],         [5, 4]]
+"Template@26":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [1, 2], [2, 2], [3, 2], [3, 3]]
+  Path:   [[0, 1], [1, 1],         [2, 2],         [3, 3]]
+"Template@27":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [2, 2], [3, 2]]
+  Path:   [[0, 2], [1, 2], [2, 2], [3, 2]]
+"Template@28":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [2, 2], [3, 2]]
+  Path:   [[0, 2], [1, 2], [2, 2], [3, 2]]
+"Template@29":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [2, 2], [3, 2]]
+  Path:   [[0, 2], [1, 2], [2, 2], [3, 2]]
+"Template@30":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [2, 2], [3, 2]]
+  Path:   [[0, 2], [1, 2], [2, 2], [3, 2]]
+"Template@31":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1]]
+  Path:   [[0, 1], [1, 1]]
+"Template@33":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 4], [1, 4], [2, 4], [3, 4], [3, 3], [3, 2], [4, 2], [4, 1], [5, 1], [6, 1]]
+  Path:   [[0, 4], [1, 4], [2, 4], [3, 4], [3, 3], [3, 2], [4, 2], [4, 1], [5, 1], [6, 1]]
+"Template@34":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 3], [1, 3], [1, 2], [2, 2], [2, 1], [3, 1], [4, 1]]
+  Path:   [[0, 3], [1, 3],         [2, 2],         [3, 1], [4, 1]]
+"Template@35":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 3], [0, 2], [1, 2], [1, 1], [2, 1], [3, 1]]
+  Path:   [[0, 3],         [1, 2], [1, 1], [2, 1], [3, 1]]
+"Template@36":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[5, 0], [5, 1], [4, 1], [4, 2], [3, 2], [3, 3], [3, 4], [2, 4], [2, 5]]
+  Path:   [[5, 0], [5, 1],         [4, 2],         [3, 3],         [2, 4], [2, 5]]
+"Template@37":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[3, 0], [3, 1], [3, 2], [3, 3], [2, 3], [2, 4]]
+  Path:   [[3, 0], [3, 1], [3, 2], [3, 3],         [2, 4]]
+"Template@38":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[3, 0], [3, 1], [2, 1], [2, 2], [1, 2], [1, 3]]
+  Path:   [[3, 0],         [2, 1], [2, 2], [1, 2], [1, 3]]
+"Template@39":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[2, 0], [2, 1], [2, 2], [2, 3]]
+  Path:   [[2, 0], [2, 1], [2, 2], [2, 3]]
+"Template@40":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[2, 0], [2, 1]]
+  Path:   [[2, 0], [2, 1]]
+"Template@42":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[2, 0], [2, 1], [2, 2], [2, 3], [3, 3], [4, 3], [4, 4], [4, 5]]
+  Path:   [[2, 0], [2, 1], [2, 2], [2, 3], [3, 3], [4, 3], [4, 4], [4, 5]]
+"Template@43":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [1, 2], [2, 2], [2, 3], [3, 3], [3, 4]]
+  Path:   [[1, 0], [1, 1], [1, 2], [2, 2], [2, 3], [3, 3], [3, 4]]
+"Template@44":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [2, 1], [3, 1], [3, 2], [3, 3]]
+  Path:   [[1, 0],         [2, 1], [3, 1], [3, 2], [3, 3]]
+"Template@45":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: U
+  PathND: [[3, 1], [3, 2], [2, 2], [1, 2], [1, 3], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0]]
+  Path:   [[3, 1], [3, 2], [2, 2], [1, 2], [1, 3], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0]]
+"Template@46":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: U
+  PathND: [[2, 1], [1, 1], [0, 1], [0, 0]]
+  Path:   [[2, 1], [1, 1], [0, 1], [0, 0]]
+"Template@47":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: R
+  PathND: [[1, 3], [1, 2], [1, 1], [1, 0], [2, 0], [2, 1], [2, 2], [3, 2]]
+  Path:   [[1, 3], [1, 2], [1, 1], [1, 0], [2, 0], [2, 1],         [3, 2]]
+"Template@48":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [1, 1], [2, 1]]
+  Path:   [[0, 2], [1, 2], [1, 1], [2, 1]]
+"Template@49":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: D
+  PathND: [[0, 2], [1, 2], [2, 2], [2, 3]]
+  Path:   [[0, 2], [1, 2], [2, 2], [2, 3]]
+"Template@50":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: D
+  PathND: [[0, 1], [1, 1], [2, 1], [2, 2]]
+  Path:   [[0, 1], [1, 1], [2, 1], [2, 2]]
+"Template@51":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: L
+  PathND: [[2, 0], [2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 0], [2, 1], [1, 1], [0, 1]]
+"Template@52":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: L
+  PathND: [[2, 0], [1, 0], [1, 1], [0, 1]]
+  Path:   [[2, 0],         [1, 1], [0, 1]]
+"Template@53":
+  Type: "Coastline"
+  StartDir: D
+  EndDir: R
+  PathND: [[2, 0], [2, 1], [3, 1], [3, 2]]
+  Path:   [[2, 0], [2, 1], [3, 1], [3, 2]]
+"Template@54":
+  Type: "Coastline"
+  StartDir: L
+  EndDir: D
+  PathND: [[3, 1], [2, 1], [2, 2], [2, 3]]
+  Path:   [[3, 1],         [2, 2], [2, 3]]
+"Template@55":
+  Type: "Coastline"
+  StartDir: U
+  EndDir: L
+  PathND: [[1, 3], [1, 2], [0, 2], [0, 1]]
+  Path:   [[1, 3], [1, 2],         [0, 1]]
+"Template@56":
+  Type: "Coastline"
+  StartDir: R
+  EndDir: U
+  PathND: [[0, 2], [0, 1], [1, 1], [1, 0]]
+  Path:   [[0, 2],         [1, 1], [1, 0]]
+
+
+
+"Template@135":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  EndType: "Clear"
+  PathND: [[2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 1], [1, 1], [0, 1]]
+"Template@136":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[2, 2], [1, 2], [1, 1], [0, 1]]
+  Path:   [[2, 2], [1, 2], [0, 1]]
+"Template@137":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 1], [1, 1], [0, 1]]
+"Template@138":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 1], [1, 1], [0, 1]]
+"Template@139":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 1], [1, 1], [0, 1]]
+"Template@140":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[2, 1], [1, 1], [0, 2]]
+  Path:   [[2, 1], [1, 1], [1, 2], [0, 2]]
+"Template@141":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  StartType: "Clear"
+  PathND: [[2, 1], [1, 1], [0, 1]]
+  Path:   [[2, 1], [1, 1], [0, 1]]
+"Template@142":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  EndType: "Clear"
+  PathND: [[1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 2], [1, 1], [1, 0]]
+"Template@143":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[2, 2], [2, 1], [1, 1], [1, 0]]
+  Path:   [[2, 2], [2, 1], [1, 1], [1, 0]]
+"Template@144":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 2], [1, 1], [1, 0]]
+"Template@145":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 2], [1, 1], [1, 0]]
+"Template@146":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 2], [1, 1], [1, 0]]
+"Template@147":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 2], [1, 1], [2, 1], [2, 0]]
+  Path:   [[1, 2], [1, 1], [2, 1], [2, 0]]
+"Template@148":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  StartType: "Clear"
+  PathND: [[1, 2], [1, 1], [1, 0]]
+  Path:   [[1, 2], [1, 1], [1, 0]]
+"Template@149":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  StartType: "Clear"
+  PathND: [[0, 1], [1, 1], [2, 1]]
+  Path:   [[0, 1], [1, 1], [2, 1]]
+"Template@150":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [1, 2], [2, 2]]
+  Path:   [[0, 1], [1, 1], [1, 2], [2, 2]]
+"Template@151":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [2, 1]]
+  Path:   [[0, 1], [1, 1], [2, 1]]
+"Template@152":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [2, 1]]
+  Path:   [[0, 1], [1, 1], [2, 1]]
+"Template@153":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1], [2, 1]]
+  Path:   [[0, 1], [1, 1], [2, 1]]
+"Template@154":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 2], [1, 2], [1, 1], [2, 1]]
+  Path:   [[0, 2], [1, 2], [1, 1], [2, 1]]
+"Template@155":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  EndType: "Clear"
+  PathND: [[0, 1], [1, 1]]
+  Path:   [[0, 1], [1, 1]]
+"Template@156":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  StartType: "Clear"
+  PathND: [[1, 0], [1, 1]]
+  Path:   [[1, 0], [1, 1]]
+"Template@157":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[2, 0], [2, 1], [1, 1], [1, 2]]
+  Path:   [[2, 0], [2, 1], [1, 1], [1, 2]]
+"Template@158":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [1, 2]]
+  Path:   [[1, 0], [1, 1], [1, 2]]
+"Template@159":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [1, 2]]
+  Path:   [[1, 0], [1, 1], [1, 2]]
+"Template@160":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [1, 2]]
+  Path:   [[1, 0], [1, 1], [1, 2]]
+"Template@161":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1], [2, 1], [2, 2]]
+  Path:   [[1, 0], [1, 1], [2, 1], [2, 2]]
+"Template@162":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  EndType: "Clear"
+  PathND: [[1, 0], [1, 1], [1, 2]]
+  Path:   [[1, 0], [1, 1], [1, 2]]
+"Template@163":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: U
+  PathND: [[2, 1], [1, 1], [1, 0]]
+  Path:   [[2, 1], [1, 1], [1, 0]]
+"Template@164":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: R
+  PathND: [[1, 2], [1, 1], [2, 1]]
+  Path:   [[1, 2], [1, 1], [2, 1]]
+"Template@165":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: D
+  PathND: [[0, 1], [1, 1], [1, 2]]
+  Path:   [[0, 1], [1, 1], [1, 2]]
+"Template@166":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: L
+  PathND: [[1, 0], [1, 1], [0, 1]]
+  Path:   [[1, 0], [1, 1], [0, 1]]
+"Template@167":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: R
+  PathND: [[1, 0], [1, 1], [2, 1]]
+  Path:   [[1, 0], [1, 1], [2, 1]]
+"Template@168":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: D
+  PathND: [[2, 1], [1, 1], [1, 2]]
+  Path:   [[2, 1], [1, 1], [1, 2]]
+"Template@169":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: L
+  PathND: [[1, 2], [1, 1], [0, 1]]
+  Path:   [[1, 2], [1, 1], [0, 1]]
+"Template@170":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: U
+  PathND: [[0, 1], [1, 1], [1, 0]]
+  Path:   [[0, 1], [1, 1], [1, 0]]
+# Template@171 is not supported.
+# Template@172 is not supported.
+"Template@401":
+  Type: "Cliff"
+  StartDir: L
+  EndDir: L
+  PathND: [[1, 1], [0, 1]]
+  Path:   [[1, 1], [0, 1]]
+"Template@402":
+  Type: "Cliff"
+  StartDir: R
+  EndDir: R
+  PathND: [[0, 1], [1, 1]]
+  Path:   [[0, 1], [1, 1]]
+"Template@403":
+  Type: "Cliff"
+  StartDir: D
+  EndDir: D
+  PathND: [[1, 0], [1, 1]]
+  Path:   [[1, 0], [1, 1]]
+"Template@404":
+  Type: "Cliff"
+  StartDir: U
+  EndDir: U
+  PathND: [[1, 1], [1, 0]]
+  Path:   [[1, 1], [1, 0]]

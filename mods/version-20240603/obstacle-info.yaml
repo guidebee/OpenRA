@@ -1,0 +1,205 @@
+Land:
+  - TemplateName: "Template@97"
+    Weight: 100
+  - TemplateName: "Template@98"
+    Weight: 100
+  - TemplateName: "Template@99"
+    Weight: 100
+  - TemplateName: "Template@217"
+    Weight: 100
+  - TemplateName: "Template@218"
+    Weight: 100
+  - TemplateName: "Template@219"
+    Weight: 100
+  - TemplateName: "Template@220"
+    Weight: 100
+  - TemplateName: "Template@221"
+    Weight: 100
+  - TemplateName: "Template@222"
+    Weight: 100
+  - TemplateName: "Template@223"
+    Weight: 100
+  - TemplateName: "Template@224"
+    Weight: 100
+  - TemplateName: "Template@225"
+    Weight: 100
+  - TemplateName: "Template@226"
+    Weight: 100
+  - TemplateName: "Template@103"
+    Weight: 100
+  - TemplateName: "Template@104"
+    Weight: 100
+  - TemplateName: "Template@105"
+    Weight: 5
+  - TemplateName: "Template@106"
+    Weight: 5
+  # These have mostly passable terrain
+  # - TemplateName: "Template@107"
+  #   Weight: 100
+  # - TemplateName: "Template@108"
+  #   Weight: 100
+  - TemplateName: "Template@109"
+    Weight: 100
+  - TemplateName: "Template@110"
+    Weight: 100
+  - TemplateName: "Template@580"
+    Weight: 10
+  - TemplateName: "Template@581"
+    Weight: 10
+  - TemplateName: "Template@582"
+    Weight: 10
+  - TemplateName: "Template@583"
+    Weight: 10
+  - TemplateName: "Template@584"
+    Weight: 10
+  - TemplateName: "Template@585"
+    Weight: 10
+  - TemplateName: "Template@586"
+    Weight: 10
+  - TemplateName: "Template@587"
+    Weight: 10
+  - TemplateName: "Template@588"
+    Weight: 10
+  - TemplateName: "Template@400"
+    Weight: 10
+  - EntityName: "t01"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t02"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t03"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t05"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t06"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t07"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t08"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t10"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t11"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t12"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t13"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t14"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t15"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t16"
+    Tile: "t255"
+    Weight: 10
+  - EntityName: "t17"
+    Tile: "t255"
+    Weight: 10
+
+Forest:
+  - EntityName: "t01"
+    Weight: 10
+  - EntityName: "t02"
+    Weight: 10
+  - EntityName: "t03"
+    Weight: 10
+  - EntityName: "t05"
+    Weight: 10
+  - EntityName: "t06"
+    Weight: 10
+  - EntityName: "t07"
+    Weight: 10
+  - EntityName: "t08"
+    Weight: 10
+  - EntityName: "t10"
+    Weight: 10
+  - EntityName: "t11"
+    Weight: 10
+  - EntityName: "t12"
+    Weight: 10
+  - EntityName: "t13"
+    Weight: 10
+  - EntityName: "t14"
+    Weight: 10
+  - EntityName: "t15"
+    Weight: 10
+  - EntityName: "t16"
+    Weight: 10
+  - EntityName: "t17"
+    Weight: 10
+  - EntityName: "t01.husk"
+    Weight: 1
+  - EntityName: "t02.husk"
+    Weight: 1
+  - EntityName: "t03.husk"
+    Weight: 1
+  - EntityName: "t05.husk"
+    Weight: 1
+  - EntityName: "t06.husk"
+    Weight: 1
+  - EntityName: "t07.husk"
+    Weight: 1
+  - EntityName: "t08.husk"
+    Weight: 1
+  - EntityName: "t10.husk"
+    Weight: 1
+  - EntityName: "t11.husk"
+    Weight: 1
+  - EntityName: "t12.husk"
+    Weight: 1
+  - EntityName: "t13.husk"
+    Weight: 1
+  - EntityName: "t14.husk"
+    Weight: 1
+  - EntityName: "t15.husk"
+    Weight: 1
+  - EntityName: "t16.husk"
+    Weight: 1
+  - EntityName: "t17.husk"
+    Weight: 1
+
+FillSymmetry:
+  - EntityName: "t03"
+    Weight: 10
+  - EntityName: "t10"
+    Weight: 10
+  - EntityName: "t11"
+    Weight: 10
+  - EntityName: "t12"
+    Weight: 10
+  - EntityName: "t13"
+    Weight: 10
+  - EntityName: "t14"
+    Weight: 10
+  - EntityName: "t15"
+    Weight: 10
+  - EntityName: "t17"
+    Weight: 10
+  - EntityName: "t03.husk"
+    Weight: 10
+  - EntityName: "t10.husk"
+    Weight: 10
+  - EntityName: "t11.husk"
+    Weight: 10
+  - EntityName: "t12.husk"
+    Weight: 10
+  - EntityName: "t13.husk"
+    Weight: 10
+  - EntityName: "t14.husk"
+    Weight: 10
+  - EntityName: "t15.husk"
+    Weight: 10
+  - EntityName: "t17.husk"
+    Weight: 10
