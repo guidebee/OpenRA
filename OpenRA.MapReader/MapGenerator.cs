@@ -814,7 +814,7 @@ Players:
             WriteU16(data, 3, (ushort)(map.Size + 2)); // Height
             WriteU32(data, 5, 17); // Tile offset
             WriteU32(data, 9, 0);  // Height map offset (not used)
-            WriteU32(data, 13, 17 + 3 * binSize); // Resources offset
+            WriteU32(data, 13, (uint)(17 + 3 * binSize)); // Resources offset - Cast to uint to fix compilation error
             
             // Initialize with default grass
             for (int i = 0; i < binSize; i++)
@@ -854,7 +854,7 @@ Players:
                     }
                     
                     // Calculate offset in binary data (+1 for border)
-                    int binIndex = (x + 1) * (map.Size + 2) + (y + 1);
+                    int binIndex = (y + 1) * (map.Size + 2) + (x + 1);
                     
                     // Write tile data
                     WriteU16(data, 17 + binIndex * 3, (ushort)templateId);
@@ -929,17 +929,24 @@ Players:
                         string tileCode = Tiles[i];
                         
                         // Set color based on tile type
-                        var color = tileCode.StartsWith("t1") ? Color.Blue : // Water
-                                   tileCode.StartsWith("t3") ? Color.ForestGreen : // Forest
-                                   Color.Green; // Land
+                        // Fix: Use SixLabors.ImageSharp Color instead of a Color with R,G,B,A properties
+                        Rgba32 pixelColor;
+                        if (tileCode.StartsWith("t1"))
+                            pixelColor = new Rgba32(0, 0, 255); // Water (Blue)
+                        else if (tileCode.StartsWith("t3"))
+                            pixelColor = new Rgba32(0, 119, 0); // Forest (ForestGreen)
+                        else
+                            pixelColor = new Rgba32(0, 255, 0); // Land (Green)
                         
                         // Show resources
                         if (Resources[i] > 0)
                         {
-                            color = Resources[i] == 1 ? Color.Gold : Color.Purple;
+                            pixelColor = Resources[i] == 1 
+                                ? new Rgba32(255, 215, 0)   // Gold
+                                : new Rgba32(128, 0, 128);  // Purple
                         }
                         
-                        image[x, y] = new Rgba32(color.R, color.G, color.B, color.A);
+                        image[x, y] = pixelColor;
                     }
                 }
                 
