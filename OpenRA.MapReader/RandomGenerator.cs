@@ -35,6 +35,14 @@ namespace OpenRA.MapReader
         {
             return (float)_random.NextDouble();
         }
+        
+        /// <summary>
+        /// Returns a random double between 0.0 and 1.0
+        /// </summary>
+        public double NextDouble()
+        {
+            return _random.NextDouble();
+        }
 
         /// <summary>
         /// Picks a random item from the array

@@ -108,7 +108,7 @@ namespace OpenRA.MapReader
                 Console.WriteLine($"Saving map to {outputPath}");
 
                 // Save the map
-                map.SaveToFiles(outputPath);
+                map.SaveToFiles(outputPath, mapGenerator);
 
                 Console.WriteLine("Map generated successfully!");
                 Console.WriteLine($"Map saved to: {outputPath}");

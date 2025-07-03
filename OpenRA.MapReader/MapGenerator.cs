@@ -35,6 +35,10 @@ namespace OpenRA.MapReader
         public string CustomName { get; set; } = "";
         public float WavelengthScale { get; set; } = 1.0f;
         public int Players { get; set; } = 1;
+        public string TileSet { get; set; } = "TEMPERAT";
+        public string MapType { get; set; } = "ra";
+        public string[] Factions { get; set; } = new[] { "england", "germany", "france", "ukraine", "russia" };
+        public string[] Colors { get; set; } = new[] { "E4302E", "0A9FC3", "CAA700", "1C9331", "7F0A83", "F8B700", "0F33C6", "C9C9C9" };
 
         // Working objects
         private readonly RandomGenerator _random;
@@ -126,8 +130,8 @@ namespace OpenRA.MapReader
                 _borderTransitions[i] = new Dictionary<int, int>();
                 for (int j = 0; j < 8; j++)
                 {
-                    // Simple transition rule: borders can connect if they're adjacent directions
-                    if (Math.Abs(i - j) <= 1 || Math.Abs(i - j) == 7)
+                    // Only connect matching borders or adjacent ones
+                    if (i == j || Math.Abs(i - j) == 1 || Math.Abs(i - j) == 7)
                     {
                         _borderTransitions[i][j] = 1;
                     }
@@ -149,7 +153,8 @@ namespace OpenRA.MapReader
                 Tiles = new string[Size * Size],
                 Resources = new byte[Size * Size],
                 ResourceDensities = new byte[Size * Size],
-                Elevation = new float[Size * Size]
+                Elevation = new float[Size * Size],
+                Entities = new List<Entity>()
             };
             
             // Load templates if not already loaded
@@ -229,44 +234,105 @@ namespace OpenRA.MapReader
                 }
             }
             
-            // 7. Generate map YAML
-            Console.WriteLine("Generating map YAML...");
-            string mapName = !string.IsNullOrEmpty(CustomName) ? CustomName : $"Random Map {Seed}";
+            // 7. Generate player entities and resources
+            Console.WriteLine("Generating player entities and resources...");
+            var players = new List<Entity>();
             
-            result.MapYaml = $@"MapFormat: 12
-RequiresMod: ra
-Title: {mapName}
-Author: OpenRA.MapReader
-Tileset: TEMPERAT
-MapSize: {Size+2},{Size+2}
-Bounds: 1,1,{Size},{Size}
-Visibility: Lobby
-Categories: Conquest
-
-Players:
-	PlayerReference@Neutral:
-		Name: Neutral
-		OwnsWorld: True
-		NonCombatant: True
-		Faction: england
-	PlayerReference@Creeps:
-		Name: Creeps
-		NonCombatant: True
-		Faction: england";
-
-            // Add players
+            // Add player starting locations with proper symmetry
             for (int i = 0; i < Players; i++)
             {
-                result.MapYaml += $@"
-	PlayerReference@Multi{i}:
-		Name: Multi{i}
-		Playable: True
-		Faction: Random
-		Enemies: Creeps";
+                // Calculate symmetric positions around the center
+                float angle = (float)(i * 2 * Math.PI / Players);
+                if (Rotations > 0)
+                {
+                    // Align to the rotational symmetry
+                    angle = (float)(i * 2 * Math.PI / Rotations);
+                }
+                
+                float radius = Size / 3.0f;
+                float centerX = Size / 2.0f;
+                float centerY = Size / 2.0f;
+                
+                int x = (int)(centerX + radius * Math.Cos(angle));
+                int y = (int)(centerY + radius * Math.Sin(angle));
+                
+                // Make sure the position is on land
+                int maxAttempts = 10;
+                for (int attempt = 0; attempt < maxAttempts; attempt++)
+                {
+                    int idx = y * Size + x;
+                    if (idx >= 0 && idx < Size * Size && result.Tiles[idx] == "t255")
+                    {
+                        break; // Found a good spot
+                    }
+                    
+                    // Try a slightly different position
+                    x = (int)(centerX + (radius + attempt * 5) * Math.Cos(angle));
+                    y = (int)(centerY + (radius + attempt * 5) * Math.Sin(angle));
+                    
+                    // Keep in bounds
+                    x = Math.Clamp(x, 5, Size - 6);
+                    y = Math.Clamp(y, 5, Size - 6);
+                }
+                
+                // Add player entity
+                players.Add(new Entity
+                {
+                    Type = "mpspawn",
+                    Owner = $"Multi{i}",
+                    X = x,
+                    Y = y
+                });
+                
+                // Add resources around player start
+                AddResourcesAroundPoint(result.Resources, result.ResourceDensities, Size, x, y, 5, 3, 1);
             }
             
-            // 8. Generate binary map data
-            Console.WriteLine("Generating binary map data...");
+            // 8. Add tech structures and resource fields
+            Console.WriteLine("Adding tech structures and resources...");
+            var entities = new List<Entity>();
+            
+            // Add neutral tech structures
+            AddNeutralStructures(entities, Size, 3);
+            
+            // Add bonus resource fields
+            for (int i = 0; i < 5; i++)
+            {
+                int x = _random.Next(Size / 4, 3 * Size / 4);
+                int y = _random.Next(Size / 4, 3 * Size / 4);
+                
+                // Don't place too close to players
+                bool tooClose = false;
+                foreach (var player in players)
+                {
+                    float dist = (player.X - x) * (player.X - x) + (player.Y - y) * (player.Y - y);
+                    if (dist < 20 * 20)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                
+                if (!tooClose)
+                {
+                    AddResourcesAroundPoint(result.Resources, result.ResourceDensities, Size, x, y, 8, 5, 1);
+                    
+                    // Add a gem patch occasionally
+                    if (_random.NextDouble() < 0.3)
+                    {
+                        AddResourcesAroundPoint(result.Resources, result.ResourceDensities, Size, 
+                            x + _random.Next(-5, 6), 
+                            y + _random.Next(-5, 6), 
+                            3, 2, 2);
+                    }
+                }
+            }
+            
+            // Add all entities to the result
+            result.Entities.AddRange(players);
+            result.Entities.AddRange(entities);
+            
+            // Generate the binary map data
             result.BinaryMap = GenerateBinaryMap(result);
             
             return result;
@@ -651,53 +717,278 @@ Players:
         /// </summary>
         private List<Vector2> TilePath(string[] tiles, int size, TerrainPath path, int minThickness)
         {
-            // Get available templates for this path type
+            // Find bounding box for this path
+            float minPointX = float.MaxValue;
+            float minPointY = float.MaxValue;
+            float maxPointX = float.MinValue;
+            float maxPointY = float.MinValue;
+            
+            foreach (var point in path.Points)
+            {
+                minPointX = Math.Min(minPointX, point.X);
+                minPointY = Math.Min(minPointY, point.Y);
+                maxPointX = Math.Max(maxPointX, point.X);
+                maxPointY = Math.Max(maxPointY, point.Y);
+            }
+            
+            // Add margin for minimum thickness
+            int maxDeviation = (minThickness - 1) / 2;
+            minPointX -= maxDeviation;
+            minPointY -= maxDeviation;
+            maxPointX += maxDeviation;
+            maxPointY += maxDeviation;
+            
+            // Shift all points to local coordinates
+            var points = path.Points.Select(p => new Vector2(
+                p.X - minPointX,
+                p.Y - minPointY
+            )).ToList();
+            
+            // Calculate local grid size for the path
+            int sizeX = (int)(maxPointX - minPointX) + 1;
+            int sizeY = (int)(maxPointY - minPointY) + 1;
+            int sizeXY = sizeX * sizeY;
+            
+            // Create data structures for path scoring
+            var deviations = new uint[sizeXY];
+            var traversables = new byte[sizeXY];
+            var directions = new byte[sizeXY];
+            
+            for (int i = 0; i < sizeXY; i++)
+            {
+                deviations[i] = uint.MaxValue;
+            }
+            
+            // Calculate deviations, traversable directions, and direction masks
+            for (int pointI = 0; pointI < points.Count; pointI++)
+            {
+                if (path.IsLoop && pointI == 0)
+                {
+                    // Skip first point for loops as it's the same as the last
+                    continue;
+                }
+                
+                var point = points[pointI];
+                int pointPrevI = pointI - 1;
+                int pointNextI = pointI + 1;
+                float directionX = 0;
+                float directionY = 0;
+                
+                if (pointNextI < points.Count)
+                {
+                    directionX += points[pointNextI].X - point.X;
+                    directionY += points[pointNextI].Y - point.Y;
+                }
+                
+                if (pointPrevI >= 0)
+                {
+                    directionX += point.X - points[pointPrevI].X;
+                    directionY += point.Y - points[pointPrevI].Y;
+                }
+                
+                // Calculate deviation for this point and surrounding area
+                for (int deviation = 0; deviation <= maxDeviation; deviation++)
+                {
+                    int minX = (int)Math.Floor(point.X - deviation);
+                    int minY = (int)Math.Floor(point.Y - deviation);
+                    int maxX = (int)Math.Ceiling(point.X + deviation);
+                    int maxY = (int)Math.Ceiling(point.Y + deviation);
+                    
+                    for (int y = minY; y <= maxY; y++)
+                    {
+                        for (int x = minX; x <= maxX; x++)
+                        {
+                            if (x < 0 || x >= sizeX || y < 0 || y >= sizeY)
+                            {
+                                continue;
+                            }
+                            
+                            int i = y * sizeX + x;
+                            
+                            if (deviation < deviations[i])
+                            {
+                                deviations[i] = (uint)deviation;
+                            }
+                            
+                            if (deviation == maxDeviation)
+                            {
+                                // Calculate traversable directions for templates
+                                if (x > minX) traversables[i] |= (1 << DIRECTION_L);
+                                if (x < maxX) traversables[i] |= (1 << DIRECTION_R);
+                                if (y > minY) traversables[i] |= (1 << DIRECTION_U);
+                                if (y < maxY) traversables[i] |= (1 << DIRECTION_D);
+                                if (x > minX && y > minY) traversables[i] |= (1 << DIRECTION_LU);
+                                if (x > minX && y < maxY) traversables[i] |= (1 << DIRECTION_LD);
+                                if (x < maxX && y > minY) traversables[i] |= (1 << DIRECTION_RU);
+                                if (x < maxX && y < maxY) traversables[i] |= (1 << DIRECTION_RD);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Calculate direction masks for each grid point
+            for (int i = 0; i < sizeXY; i++)
+            {
+                if (deviations[i] == uint.MaxValue)
+                {
+                    continue;
+                }
+                
+                int x = i % sizeX;
+                int y = i / sizeX;
+                
+                // Determine main direction of the path at this point
+                float dx = 0, dy = 0;
+                
+                for (int j = 1; j < points.Count; j++)
+                {
+                    float dist = (points[j].X - x) * (points[j].X - x) + (points[j].Y - y) * (points[j].Y - y);
+                    if (dist < 5 * 5) // Within close range
+                    {
+                        // Contribute to direction based on path segment
+                        float segmentDx = points[j].X - points[j - 1].X;
+                        float segmentDy = points[j].Y - points[j - 1].Y;
+                        float weight = 1.0f / (dist + 1);
+                        
+                        dx += segmentDx * weight;
+                        dy += segmentDy * weight;
+                    }
+                }
+                
+                if (dx != 0 || dy != 0)
+                {
+                    // Calculate direction based on vector
+                    int direction = CalculateDirectionXY(dx, dy);
+                    
+                    // Set permitted directions (allow 3 adjacent directions)
+                    directions[i] = (byte)(1 << direction);
+                    directions[i] |= (byte)(1 << ((direction + 1) % 8));
+                    directions[i] |= (byte)(1 << ((direction + 7) % 8));
+                }
+            }
+            
+            // Get relevant templates and organize by border
             var availableTemplates = _templatesByType.ContainsKey(path.Type) 
                 ? _templatesByType[path.Type] 
                 : new List<TerrainTemplate>();
-            
+                
             if (availableTemplates.Count == 0)
             {
                 Console.WriteLine($"Warning: No templates available for path type {path.Type}");
                 return path.Points.ToList();
             }
             
-            // In a full implementation, this would use the complex template selection algorithm
-            // For this example, we'll use a simplified approach
-            var points = path.Points;
-            var placedPoints = new List<Vector2>();
+            // Organize templates by border
+            var templatesByStartBorder = new Dictionary<int, List<TerrainTemplate>>();
+            var templatesByEndBorder = new Dictionary<int, List<TerrainTemplate>>();
             
-            for (int i = 1; i < points.Count; i++)
+            foreach (var template in availableTemplates)
             {
-                // Get current position and direction
-                int x = (int)points[i - 1].X;
-                int y = (int)points[i - 1].Y;
-                int nextX = (int)points[i].X;
-                int nextY = (int)points[i].Y;
-                int dir = CalculateDirection(points[i - 1], points[i]);
-                
-                // Find a template that fits this direction
-                var template = availableTemplates.FirstOrDefault(t => t.StartBorderN == dir);
-                if (template == null)
+                if (!templatesByStartBorder.ContainsKey(template.StartBorderN))
                 {
-                    template = availableTemplates.First(); // Fallback
+                    templatesByStartBorder[template.StartBorderN] = new List<TerrainTemplate>();
                 }
                 
-                // Place the template
+                if (!templatesByEndBorder.ContainsKey(template.EndBorderN))
+                {
+                    templatesByEndBorder[template.EndBorderN] = new List<TerrainTemplate>();
+                }
+                
+                templatesByStartBorder[template.StartBorderN].Add(template);
+                templatesByEndBorder[template.EndBorderN].Add(template);
+            }
+            
+            // Place tiles along the path
+            var resultPath = new List<Vector2>();
+            
+            // Simple template placement algorithm - for each point, find and place the best template
+            for (int i = 1; i < points.Count; i++)
+            {
+                int startX = (int)points[i - 1].X;
+                int startY = (int)points[i - 1].Y;
+                int endX = (int)points[i].X;
+                int endY = (int)points[i].Y;
+                
+                // Calculate direction of this segment
+                int direction = CalculateDirection(
+                    new Vector2(startX, startY),
+                    new Vector2(endX, endY)
+                );
+                
+                // Find templates that match this direction
+                var matchingTemplates = templatesByStartBorder.ContainsKey(direction)
+                    ? templatesByStartBorder[direction]
+                    : new List<TerrainTemplate>();
+                
+                if (matchingTemplates.Count == 0)
+                {
+                    // If no exact match, find the closest direction
+                    int bestDiff = 8;
+                    int bestDir = direction;
+                    
+                    foreach (var dir in templatesByStartBorder.Keys)
+                    {
+                        int diff = Math.Min(Math.Abs(dir - direction), Math.Min(dir + 8 - direction, direction + 8 - dir));
+                        if (diff < bestDiff)
+                        {
+                            bestDiff = diff;
+                            bestDir = dir;
+                        }
+                    }
+                    
+                    matchingTemplates = templatesByStartBorder[bestDir];
+                }
+                
+                // Pick a random matching template
+                int templateIndex = _random.Next(matchingTemplates.Count);
+                var template = matchingTemplates[templateIndex];
+                
+                // Place the template at the start position
+                int globalX = (int)(startX + minPointX);
+                int globalY = (int)(startY + minPointY);
+                
+                // Place all tiles in the template
                 for (int j = 0; j < template.Shape.Count; j++)
                 {
-                    int tx = x + (int)template.Shape[j].X;
-                    int ty = y + (int)template.Shape[j].Y;
+                    int tx = globalX + (int)template.Shape[j].X;
+                    int ty = globalY + (int)template.Shape[j].Y;
                     
                     if (tx >= 0 && tx < size && ty >= 0 && ty < size)
                     {
                         tiles[ty * size + tx] = $"t{template.Id}i{j}";
-                        placedPoints.Add(new Vector2(tx, ty));
+                        resultPath.Add(new Vector2(tx, ty));
                     }
                 }
             }
             
-            return placedPoints;
+            return resultPath;
+        }
+        
+        /// <summary>
+        /// Calculate direction from a vector
+        /// </summary>
+        private int CalculateDirectionXY(float dx, float dy)
+        {
+            if (dx > 0)
+            {
+                if (dy > 0) return DIRECTION_RD;
+                if (dy < 0) return DIRECTION_RU;
+                return DIRECTION_R;
+            }
+            
+            if (dx < 0)
+            {
+                if (dy > 0) return DIRECTION_LD;
+                if (dy < 0) return DIRECTION_LU;
+                return DIRECTION_L;
+            }
+            
+            if (dy > 0) return DIRECTION_D;
+            if (dy < 0) return DIRECTION_U;
+            
+            // Default if both are zero
+            return DIRECTION_R;
         }
 
         /// <summary>
@@ -797,6 +1088,104 @@ Players:
         }
 
         /// <summary>
+        /// Write the map YAML file
+        /// </summary>
+        public void WriteYaml(GeneratedMap map, string yamlPath)
+        {
+            Console.WriteLine("Writing map.yaml file...");
+            using (var writer = new StreamWriter(yamlPath))
+            {
+                writer.WriteLine("MapFormat: 11");
+                writer.WriteLine();
+                writer.WriteLine("RequiresMod: ra");
+                writer.WriteLine();
+                writer.WriteLine("Title: Randomly Generated Map");
+                writer.WriteLine("Author: OpenRA Map Generator");
+                writer.WriteLine("Tileset: TEMPERAT");
+                writer.WriteLine("MapSize: {0},{0}", map.Size + 2);
+                writer.WriteLine("Bounds: 1,1,{0},{0}", map.Size);
+                writer.WriteLine();
+                writer.WriteLine("Visibility: MissionSelector, Lobby");
+                writer.WriteLine("Categories: System");
+                writer.WriteLine("LockPreview: True");
+                writer.WriteLine("HideTileSpriteLayer: True");
+                writer.WriteLine();
+                writer.WriteLine("Players:");
+                writer.WriteLine("  PlayerReference@Neutral:");
+                writer.WriteLine("    Name: Neutral");
+                writer.WriteLine("    OwnsWorld: True");
+                writer.WriteLine("    NonCombatant: True");
+                writer.WriteLine("    Faction: england");
+                writer.WriteLine("  PlayerReference@Creeps:");
+                writer.WriteLine("    Name: Creeps");
+                writer.WriteLine("    NonCombatant: True");
+                writer.WriteLine("    Faction: england");
+
+                for (int i = 0; i < Players; i++)
+                {
+                    writer.WriteLine("  PlayerReference@Multi{0}:", i);
+                    writer.WriteLine("    Name: Multi{0}", i);
+                    writer.WriteLine("    Playable: True");
+                    writer.WriteLine("    AllowBots: True");
+                    writer.WriteLine("    LockFaction: False");
+                    writer.WriteLine("    LockColor: True");
+                    writer.WriteLine("    LockSpawn: False");
+                    writer.WriteLine("    LockTeam: False");
+                    writer.WriteLine("    DefaultStartingUnits: True");
+                    writer.WriteLine("    Faction: Random");
+                }
+                writer.WriteLine();
+                writer.WriteLine("Rules:");
+                writer.WriteLine("  Player:");
+                for (int i = 0; i < Players; i++)
+                {
+                    writer.WriteLine("    multi{0}:", i);
+                    writer.WriteLine("      Faction: {0}", Factions[i % Factions.Length]);
+                    writer.WriteLine("      Color: {0}", Colors[i % Colors.Length]);
+                }
+                
+                // Write Actors section for entities
+                if (map.Entities.Count > 0)
+                {
+                    writer.WriteLine();
+                    writer.WriteLine("Actors:");
+                    int actorId = 0;
+                    
+                    foreach (var entity in map.Entities)
+                    {
+                        writer.WriteLine("  Actor{0}:", actorId);
+                        writer.WriteLine("    Location: {0},{1}", entity.X + 1, entity.Y + 1);
+                        writer.WriteLine("    Owner: {0}", entity.Owner);
+                        writer.WriteLine("    Type: {0}", entity.Type);
+                        
+                        actorId++;
+                    }
+                }
+                
+                // Write Resources section for resource entities            if (map.Resources.Any(r => r != 0))
+            {
+                writer.WriteLine();
+                writer.WriteLine("ResourceLayer:");
+                
+                for (int y = 0; y < map.Size; y++)
+                {
+                    for (int x = 0; x < map.Size; x++)
+                    {
+                        int idx = y * map.Size + x;
+                        if (idx < map.Resources.Length && map.Resources[idx] != 0)
+                        {
+                            writer.WriteLine("  {0},{1}: {2},{3}", 
+                                x + 1, y + 1, 
+                                map.Resources[idx], 
+                                map.ResourceDensities.Length > idx ? map.ResourceDensities[idx] : 255);
+                        }
+                    }
+                }
+            }
+            }
+        }
+
+        /// <summary>
         /// Generate the binary map data
         /// </summary>
         private byte[] GenerateBinaryMap(GeneratedMap map)
@@ -888,6 +1277,78 @@ Players:
             buffer[offset + 2] = (byte)((value >> 16) & 0xFF);
             buffer[offset + 3] = (byte)((value >> 24) & 0xFF);
         }
+        
+        /// <summary>
+        /// Adds resources around a point to create ore fields
+        /// </summary>
+        private void AddResourcesAroundPoint(byte[] resources, byte[] densities, int size, int centerX, int centerY, int radius, int amount, byte resourceType)
+        {
+            for (int i = 0; i < amount; i++)
+            {
+                // Random angle and distance within radius
+                double angle = _random.NextDouble() * Math.PI * 2;
+                double distance = _random.NextDouble() * radius;
+                
+                int x = (int)(centerX + Math.Cos(angle) * distance);
+                int y = (int)(centerY + Math.Sin(angle) * distance);
+                
+                // Make sure coordinates are in bounds
+                if (x >= 0 && x < size && y >= 0 && y < size)
+                {
+                    // Add a small ore patch
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            
+                            if (nx >= 0 && nx < size && ny >= 0 && ny < size)
+                            {
+                                resources[ny * size + nx] = resourceType;
+                                densities[ny * size + nx] = (byte)(_random.Next(40, 100));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Adds neutral structures to the map
+        /// </summary>
+        private void AddNeutralStructures(List<Entity> entities, int size, int count)
+        {
+            string[] structureTypes = { "oilb", "hosp", "miss", "bio" };
+            float centerX = size / 2.0f;
+            float centerY = size / 2.0f;
+            
+            for (int i = 0; i < count; i++)
+            {
+                // Choose a random structure type
+                string type = structureTypes[_random.Next(structureTypes.Length)];
+                
+                // Place at random position away from center
+                double angle = _random.NextDouble() * Math.PI * 2;
+                double distance = size * 0.25 + _random.NextDouble() * size * 0.15;
+                
+                int x = (int)(centerX + Math.Cos(angle) * distance);
+                int y = (int)(centerY + Math.Sin(angle) * distance);
+                
+                // Make sure coordinates are valid
+                x = Math.Clamp(x, 2, size - 3);
+                y = Math.Clamp(y, 2, size - 3);
+                
+                // Add the entity
+                entities.Add(new Entity
+                {
+                    Type = type,
+                    Owner = "Neutral",
+                    X = x,
+                    Y = y
+                });
+            }
+        }
     }
 
     /// <summary>
@@ -900,19 +1361,19 @@ Players:
         public byte[] Resources { get; set; }
         public byte[] ResourceDensities { get; set; }
         public float[] Elevation { get; set; }
-        public string MapYaml { get; set; }
         public byte[] BinaryMap { get; set; }
+        public List<Entity> Entities { get; set; } = new();
         
         /// <summary>
         /// Save the map files to disk
         /// </summary>
-        public void SaveToFiles(string basePath)
+        public void SaveToFiles(string basePath, MapGenerator generator)
         {
             // Create the directory if it doesn't exist
             Directory.CreateDirectory(basePath);
             
             // Save the map.yaml file
-            File.WriteAllText(Path.Combine(basePath, "map.yaml"), MapYaml);
+            generator.WriteYaml(this, Path.Combine(basePath, "map.yaml"));
             
             // Save the map.bin file
             File.WriteAllBytes(Path.Combine(basePath, "map.bin"), BinaryMap);
@@ -929,7 +1390,6 @@ Players:
                         string tileCode = Tiles[i];
                         
                         // Set color based on tile type
-                        // Fix: Use SixLabors.ImageSharp Color instead of a Color with R,G,B,A properties
                         Rgba32 pixelColor;
                         if (tileCode.StartsWith("t1"))
                             pixelColor = new Rgba32(0, 0, 255); // Water (Blue)
@@ -947,6 +1407,37 @@ Players:
                         }
                         
                         image[x, y] = pixelColor;
+                    }
+                }
+                
+                // Draw entities
+                foreach (var entity in Entities)
+                {
+                    if (entity.X >= 0 && entity.X < Size && entity.Y >= 0 && entity.Y < Size)
+                    {
+                        // Mark entities with white pixels
+                        image[entity.X, entity.Y] = new Rgba32(255, 255, 255);
+                        
+                        // Mark player entities with different colors
+                        if (entity.Type == "mpspawn")
+                        {
+                            // Draw a small cross to mark player positions
+                            for (int dy = -1; dy <= 1; dy++)
+                            {
+                                for (int dx = -1; dx <= 1; dx++)
+                                {
+                                    int nx = entity.X + dx;
+                                    int ny = entity.Y + dy;
+                                    if (nx >= 0 && nx < Size && ny >= 0 && ny < Size)
+                                    {
+                                        if (dx == 0 || dy == 0)
+                                        {
+                                            image[nx, ny] = new Rgba32(255, 0, 0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 
