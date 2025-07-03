@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OpenRA.MapReader": {
+      "commandName": "Project",
+      "commandLineArgs": "--tileset temperate  --players 2"
+    }
+  }
+}
