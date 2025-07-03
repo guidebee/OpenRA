@@ -1,6 +1,9 @@
 using OpenRA.FileSystem;
 using OpenRA.Primitives;
 using System.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace OpenRA.MapReader
 {
@@ -84,7 +87,27 @@ namespace OpenRA.MapReader
             {
                 foreach (var node in yaml)
                 {
-                    node.WriteTo(writer);
+                    WriteNodeToFile(node, writer);
+                    writer.WriteLine();
+                }
+            }
+        }
+        
+        private void WriteNodeToFile(MiniYamlNode node, StreamWriter writer)
+        {
+            // Implement our own WriteTo method since it's not available
+            writer.Write(node.Key);
+            if (!string.IsNullOrEmpty(node.Value.Value))
+                writer.Write(": " + node.Value.Value);
+            
+            // Write child nodes
+            if (node.Value.Nodes.Length > 0)
+            {
+                writer.WriteLine();
+                foreach (var child in node.Value.Nodes)
+                {
+                    writer.Write("\t");
+                    WriteNodeToFile(child, writer);
                     writer.WriteLine();
                 }
             }
@@ -151,12 +174,18 @@ namespace OpenRA.MapReader
                     {
                         var pos = new CPos(x, y);
                         if (Tiles.TryGetValue(pos, out var tile))
-                            writer.Write(tile.ToUInt32());
+                            writer.Write(TerrainTileToUInt32(tile));
                         else
                             writer.Write((uint)0); // Default empty tile
                     }
                 }
             }
+        }
+        
+        private uint TerrainTileToUInt32(TerrainTile tile)
+        {
+            // Convert TerrainTile to uint (Type is lower 16 bits, Index is next 8 bits)
+            return (uint)tile.Type | ((uint)tile.Index << 16);
         }
         
         private void SavePreviewImage(string filePath)
@@ -168,7 +197,7 @@ namespace OpenRA.MapReader
             else
             {
                 // Generate a simple preview image
-                using (var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(MapSize, MapSize))
+                using (var image = new Image<Rgba32>(MapSize, MapSize))
                 {
                     // Draw a placeholder image (black with grid)
                     for (int y = 0; y < MapSize; y++)
@@ -180,38 +209,42 @@ namespace OpenRA.MapReader
                             {
                                 // Determine color based on terrain type
                                 var color = GetColorForTile(tile);
-                                image[x, y] = new SixLabors.ImageSharp.PixelFormats.Rgba32(
+                                image[x, y] = new Rgba32(
                                     color.R, color.G, color.B, color.A);
                             }
                             else
                             {
                                 // Default to black
-                                image[x, y] = SixLabors.ImageSharp.PixelFormats.Rgba32.Black;
+                                image[x, y] = new Rgba32(0, 0, 0, 255);
                             }
                         }
                     }
                     
-                    image.Save(filePath);
+                    // Save using PNG encoder
+                    using (var fileStream = File.Create(filePath))
+                    {
+                        image.Save(fileStream, new PngEncoder());
+                    }
                 }
             }
         }
         
-        private SixLabors.ImageSharp.PixelFormats.Rgba32 GetColorForTile(TerrainTile tile)
+        private OpenRA.Primitives.Color GetColorForTile(TerrainTile tile)
         {
             // Map different terrain types to colors
             // This is a simplified version for preview purposes
             switch (tile.Type)
             {
                 case 0: // Clear
-                    return new SixLabors.ImageSharp.PixelFormats.Rgba32(76, 230, 0, 255);
+                    return OpenRA.Primitives.Color.FromArgb(76, 230, 0);
                 case 1: // Water
-                    return new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 160, 255, 255);
+                    return OpenRA.Primitives.Color.FromArgb(0, 160, 255);
                 case 2: // Rock
-                    return new SixLabors.ImageSharp.PixelFormats.Rgba32(170, 120, 70, 255);
+                    return OpenRA.Primitives.Color.FromArgb(170, 120, 70);
                 case 3: // Resource
-                    return new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 215, 0, 255);
+                    return OpenRA.Primitives.Color.FromArgb(255, 215, 0);
                 default:
-                    return new SixLabors.ImageSharp.PixelFormats.Rgba32(128, 128, 128, 255);
+                    return OpenRA.Primitives.Color.FromArgb(128, 128, 128);
             }
         }
         
