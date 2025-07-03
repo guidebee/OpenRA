@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OpenRA.FileSystem;
 using OpenRA.Primitives;
 
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     class Program
     {

@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Represents a complete generated map
@@ -32,7 +32,7 @@ namespace OpenRA.MapReader
             Title = title;
             TileSet = tileSet;
             MapSize = mapSize;
-            Author = "OpenRA.MapReader";
+            Author = "OpenRA.MapGenerator";
             PlayerCount = 2;
         }
         

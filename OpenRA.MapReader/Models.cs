@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Represents a terrain template that can be placed on the map

@@ -1,4 +1,4 @@
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Generates Perlin noise for terrain generation

@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.Processing;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Core map generator class that creates terrain, resources, and entities

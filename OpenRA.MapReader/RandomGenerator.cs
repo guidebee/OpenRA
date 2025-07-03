@@ -1,4 +1,4 @@
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// A seedable random number generator
