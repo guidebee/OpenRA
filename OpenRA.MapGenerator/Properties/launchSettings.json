@@ -5,7 +5,8 @@
       "distributionName": ""
     },
     "OpenRA.MapGenerator": {
-      "commandName": "Executable"
+      "commandName": "Executable",
+      "executablePath": "C:\\Workspace\\OpenRA\\bin\\OpenRA.MapGenerator.exe"
     }
   }
 }
