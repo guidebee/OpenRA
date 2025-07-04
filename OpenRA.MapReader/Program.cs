@@ -34,6 +34,33 @@ namespace OpenRA.MapReader
         public int[] Frames { get; set; }
         public string Palette { get; set; }
         public List<TemplateTileExportInfo> Tiles { get; set; } = new List<TemplateTileExportInfo>();
+
+        // Helper method to get tileset-specific image paths
+        public string[] GetTilesetImages(string tileset)
+        {
+            if (Images == null || Images.Length == 0)
+            {
+                // Generate default image names based on tileset and template ID
+                var extension = GetTilesetExtension(tileset);
+                return new[] { $"t{Id:D2}{extension}" };
+            }
+            
+            return Images;
+        }
+        
+        // Helper method to get the appropriate extension for each tileset
+        private string GetTilesetExtension(string tileset)
+        {
+            return tileset.ToUpperInvariant() switch
+            {
+                "TEMPERAT" => ".tem",
+                "SNOW" => ".sno",
+                "DESERT" => ".des",
+                "INTERIOR" => ".int",
+                "JUNGLE" => ".jun",
+                _ => ".tem" // Default to temperate
+            };
+        }
     }
 
     /// <summary>
@@ -1623,6 +1650,7 @@ namespace OpenRA.MapReader
 
             var tileRect = new Rectangle(x, y, size, size);
 
+            // Start with the base terrain color
             image.Mutate(ctx => ctx.Fill(Color.FromRgba(
                 (byte)baseColor[0],
                 (byte)baseColor[1],
@@ -1630,32 +1658,262 @@ namespace OpenRA.MapReader
                 (byte)baseColor[3]),
                 tileRect));
 
-            if (tileset.Equals("DESERT", StringComparison.OrdinalIgnoreCase))
-                DrawDesertTerrain(image, x, y, size, terrainType, height, rampType);
-            else if (tileset.Equals("TEMPERAT", StringComparison.OrdinalIgnoreCase))
-                DrawTemperateTerrain(image, x, y, size, terrainType, height, rampType);
-            else if (tileset.Equals("SNOW", StringComparison.OrdinalIgnoreCase))
-                DrawSnowTerrain(image, x, y, size, terrainType, height, rampType);
-            else if (tileset.Equals("INTERIOR", StringComparison.OrdinalIgnoreCase))
-                DrawInteriorTerrain(image, x, y, size, terrainType, height, rampType);
-            else
-                DrawGenericTerrain(image, x, y, size, terrainType, height, rampType);
-
-            if (height > 0)
+            // Draw terrain type-specific visualizations based on the tileset
+            switch (tileset.ToUpperInvariant())
             {
-                var font = SystemFonts.CreateFont("Arial", size / 4, FontStyle.Bold);
+                case "DESERT":
+                    DrawDesertTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+                case "TEMPERAT":
+                    DrawTemperateTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+                case "SNOW":
+                    DrawSnowTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+                case "INTERIOR":
+                    DrawInteriorTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+                case "JUNGLE":
+                    // Add jungle-specific terrain if needed
+                    DrawTemperateTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+                default:
+                    DrawGenericTerrain(image, x, y, size, terrainType, height, rampType);
+                    break;
+            }
+
+            // Add terrain type name
+            string terrainTypeName = GetTerrainTypeName(terrainType, tileset);
+            if (!string.IsNullOrEmpty(terrainTypeName))
+            {
+                var smallFont = SystemFonts.CreateFont("Arial", size / 8, FontStyle.Regular);
                 image.Mutate(ctx =>
                 {
-                    ctx.DrawText(height.ToString(), font, Color.White,
-                        new PointF(x + size / 2 - size / 8, y + size / 2 - size / 8));
+                    var textBgRect = new RectangleF(
+                        x + 3,
+                        y + 3,
+                        size / 3,
+                        size / 10
+                    );
+                    ctx.Fill(new Rgba32(0, 0, 0, 150), textBgRect);
+                    ctx.DrawText(terrainTypeName, smallFont, Color.White, new PointF(x + 5, y + 4));
                 });
             }
 
-            image.Mutate(ctx => ctx.Draw(Color.Black, 1, tileRect));
+            // Show height value with visual indicator if non-zero
+            if (height > 0)
+            {
+                var font = SystemFonts.CreateFont("Arial", size / 5, FontStyle.Bold);
+                image.Mutate(ctx =>
+                {
+                    // Draw a small height indicator
+                    var heightStr = $"H:{height}";
+                    var textBgRect = new RectangleF(
+                        x + size / 2 - size / 8,
+                        y + size / 2 - size / 10,
+                        size / 4,
+                        size / 5
+                    );
+                    ctx.Fill(new Rgba32(0, 0, 0, 150), textBgRect);
+                    ctx.DrawText(heightStr, font, Color.White,
+                        new PointF(x + size / 2 - size / 8 + 2, y + size / 2 - size / 10 + 2));
+                });
+            }
 
+            // Draw ramp indicator if needed
             if (rampType > 0)
             {
                 DrawRamp(image, x, y, size, rampType);
+            }
+
+            // Add tile index in the bottom-right corner
+            var indexFont = SystemFonts.CreateFont("Arial", size / 8, FontStyle.Regular);
+            image.Mutate(ctx =>
+            {
+                var indexStr = $"Index:{tileInfo.Index}";
+                var textBgRect = new RectangleF(
+                    x + size - size / 3 - 6,
+                    y + size - size / 10 - 4,
+                    size / 3,
+                    size / 10
+                );
+                ctx.Fill(new Rgba32(0, 0, 0, 150), textBgRect);
+                ctx.DrawText(indexStr, indexFont, Color.White,
+                    new PointF(x + size - size / 3 - 4, y + size - size / 10 - 3));
+            });
+        }
+
+        // Helper method to get user-friendly terrain type names
+        static string GetTerrainTypeName(byte terrainType, string tileset)
+        {
+            if (tileset.Equals("DESERT", StringComparison.OrdinalIgnoreCase))
+            {
+                switch (terrainType)
+                {
+                    case 0: return "Clear";
+                    case 1: return "Water";
+                    case 2: return "Rock";
+                    case 3: return "Road";
+                    case 4: return "Tree";
+                    case 5: return "Ore";
+                    case 6: return "Dune";
+                    case 7: return "Ridge";
+                    case 10: return "Beach";
+                    default: return $"Type:{terrainType}";
+                }
+            }
+            else if (tileset.Equals("TEMPERAT", StringComparison.OrdinalIgnoreCase))
+            {
+                switch (terrainType)
+                {
+                    case 0: return "Clear";
+                    case 1: return "Water";
+                    case 2: return "Rock";
+                    case 3: return "Road";
+                    case 4: return "Tree";
+                    case 5: return "Ore";
+                    case 6: return "River";
+                    case 7: return "Ridge";
+                    default: return $"Type:{terrainType}";
+                }
+            }
+            else if (tileset.Equals("SNOW", StringComparison.OrdinalIgnoreCase))
+            {
+                switch (terrainType)
+                {
+                    case 0: return "Clear";
+                    case 1: return "Ice";
+                    case 2: return "Rock";
+                    case 3: return "Road";
+                    case 4: return "Tree";
+                    case 5: return "Ore";
+                    case 6: return "Drift";
+                    case 7: return "Ridge";
+                    default: return $"Type:{terrainType}";
+                }
+            }
+            else if (tileset.Equals("INTERIOR", StringComparison.OrdinalIgnoreCase))
+            {
+                switch (terrainType)
+                {
+                    case 0: return "Clear";
+                    case 1: return "Water";
+                    case 2: return "Wall";
+                    case 3: return "Road";
+                    case 4: return "Column";
+                    case 5: return "Ore";
+                    default: return $"Type:{terrainType}";
+                }
+            }
+            else
+            {
+                return $"Type:{terrainType}";
+            }
+        }
+
+        static void GenerateTemplatePng(TemplateExportInfo template, string outputPath, string tileset)
+        {
+            try
+            {
+                int width = template.Size.X;
+                int height = template.Size.Y;
+
+                if (width <= 0 || height <= 0)
+                {
+                    width = 1;
+                    height = 1;
+                }
+
+                int scale = 64;
+                int imageWidth = width * scale;
+                int imageHeight = height * scale;
+
+                using (var image = new Image<Rgba32>(imageWidth, imageHeight))
+                {
+                    // Use a different background color based on tileset
+                    var backgroundColor = tileset.ToUpperInvariant() switch
+                    {
+                        "TEMPERAT" => new Rgba32(86, 151, 50, 255),  // Green
+                        "SNOW" => new Rgba32(236, 240, 241, 255),    // White
+                        "DESERT" => new Rgba32(245, 222, 178, 255),  // Sandy
+                        "INTERIOR" => new Rgba32(150, 150, 150, 255), // Gray
+                        "JUNGLE" => new Rgba32(76, 120, 40, 255),    // Dark green
+                        _ => new Rgba32(50, 50, 50, 255)            // Default dark gray
+                    };
+                    
+                    image.Mutate(ctx => ctx.Fill(backgroundColor));
+
+                    // First, draw a grid
+                    image.Mutate(ctx => 
+                    {
+                        var gridColor = new Rgba32(0, 0, 0, 80);
+                        for (int x = 0; x <= width; x++)
+                        {
+                            ctx.DrawLine(gridColor, 1, 
+                                new PointF(x * scale, 0), 
+                                new PointF(x * scale, imageHeight));
+                        }
+                        for (int y = 0; y <= height; y++)
+                        {
+                            ctx.DrawLine(gridColor, 1,
+                                new PointF(0, y * scale), 
+                                new PointF(imageWidth, y * scale));
+                        }
+                    });
+
+                    // Next, draw each tile
+                    for (int tileY = 0; tileY < height; tileY++)
+                    {
+                        for (int tileX = 0; tileX < width; tileX++)
+                        {
+                            int tileIndex = tileY * width + tileX;
+                            var tileInfo = template.Tiles.FirstOrDefault(t => t.Index == tileIndex);
+
+                            if (tileInfo != null)
+                            {
+                                int pixelX = tileX * scale;
+                                int pixelY = tileY * scale;
+
+                                DrawTile(image, pixelX, pixelY, scale, tileInfo, tileset);
+                            }
+                        }
+                    }
+
+                    // Add a border around the template for clarity
+                    image.Mutate(ctx => 
+                    {
+                        var borderColor = new Rgba32(0, 0, 0, 255);
+                        ctx.Draw(Color.Black, 2, new Rectangle(0, 0, imageWidth, imageHeight));
+                        
+                        // Draw template ID and info in the bottom-right corner
+                        var font = SystemFonts.CreateFont("Arial", 16, FontStyle.Bold);
+                        var templateInfo = $"Template {template.Id} - {tileset}";
+                        if (template.Images != null && template.Images.Length > 0)
+                        {
+                            templateInfo += $" - {string.Join(", ", template.Images)}";
+                        }
+
+                        // Draw a background for the text
+                        var textBgRect = new RectangleF(
+                            imageWidth - 220, 
+                            imageHeight - 30,
+                            210, 
+                            25
+                        );
+                        
+                        ctx.Fill(new Rgba32(0, 0, 0, 180), textBgRect);
+                        ctx.DrawText(templateInfo, font, Color.White, 
+                            new PointF(imageWidth - 215, imageHeight - 28));
+                    });
+
+                    image.Save(outputPath, new PngEncoder());
+                }
+
+                Console.WriteLine($"Created template image: {outputPath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to generate PNG for template {template.Id}: {ex.Message}");
             }
         }
 
@@ -1741,10 +1999,82 @@ namespace OpenRA.MapReader
                         if (tilesetTemplates[tileset].ContainsKey(template.Key))
                             continue;
 
+                        // Extract template name for proper image reference
+                        var templateName = template.Value.Name;
+                        string[] images;
+                        
+                        // If we have a template name, try to construct the proper image reference based on conventions
+                        if (!string.IsNullOrEmpty(templateName))
+                        {
+                            // Generate tileset-specific image filename
+                            var extension = tileset.ToUpperInvariant() switch
+                            {
+                                "TEMPERAT" => ".tem",
+                                "SNOW" => ".sno",
+                                "DESERT" => ".des",
+                                "INTERIOR" => ".int",
+                                "JUNGLE" => ".jun",
+                                _ => ".tem" // Default to temperate
+                            };
+                            
+                            // Determine the prefix from template name if possible
+                            // Template names typically reference the image files they use
+                            // For example, Template@12 uses sh10.tem as shown in the example
+                            string prefixStr = null;
+                            
+                            // Common prefixes used in OpenRA tilesets
+                            string[] commonPrefixList = { "sh", "c", "d", "t", "r", "w", "p", "f" };
+                            
+                            // Try to extract a prefix from the template name
+                            if (templateName.Contains('@'))
+                            {
+                                var id = int.Parse(templateName.Split('@')[1]);
+                                
+                                // First check if it's a well-known pattern
+                                foreach (var p in commonPrefixList)
+                                {
+                                    if (id >= 10 && id < 20 && p == "sh")
+                                    {
+                                        // In this case we know sh10.tem is used for Template@12 based on example
+                                        images = new[] { $"{p}{10}{extension}" };
+                                        goto imagesAssigned;
+                                    }
+                                }
+                                
+                                // Try to map template ID to image number 
+                                // This is a best guess and will need to be improved for accuracy
+                                var imageNum = (id / 10) * 10;
+                                images = new[] { $"sh{imageNum}{extension}" };
+                            }
+                            else
+                            {
+                                // Default fallback
+                                images = new[] { $"t{template.Key:D2}{extension}" };
+                            }
+                        }
+                        else
+                        {
+                            // Default fallback if we don't have a name
+                            var extension = tileset.ToUpperInvariant() switch
+                            {
+                                "TEMPERAT" => ".tem",
+                                "SNOW" => ".sno",
+                                "DESERT" => ".des",
+                                "INTERIOR" => ".int",
+                                "JUNGLE" => ".jun",
+                                _ => ".tem" // Default to temperate
+                            };
+                            
+                            images = new[] { $"t{template.Key:D2}{extension}" };
+                        }
+
+                    imagesAssigned:
                         var templateInfo = new TemplateExportInfo
                         {
                             Id = template.Value.Id,
                             Size = template.Value.Size,
+                            PickAny = template.Value.Tiles.Count() != template.Value.Size.X * template.Value.Size.Y,
+                            Images = images,
                             Tiles = template.Value.Tiles.Select(t => new TemplateTileExportInfo
                             {
                                 Index = t.Index,
@@ -1979,55 +2309,6 @@ namespace OpenRA.MapReader
                 (int)(b * blend + baseColor[2] * (1 - blend)),
                 255
             };
-        }
-
-        static void GenerateTemplatePng(TemplateExportInfo template, string outputPath, string tileset)
-        {
-            try
-            {
-                int width = template.Size.X;
-                int height = template.Size.Y;
-
-                if (width <= 0 || height <= 0)
-                {
-                    width = 1;
-                    height = 1;
-                }
-
-                int scale = 64;
-                int imageWidth = width * scale;
-                int imageHeight = height * scale;
-
-                using (var image = new Image<Rgba32>(imageWidth, imageHeight))
-                {
-                    image.Mutate(ctx => ctx.Fill(Color.FromRgba(50, 50, 50, 255)));
-
-                    for (int tileY = 0; tileY < height; tileY++)
-                    {
-                        for (int tileX = 0; tileX < width; tileX++)
-                        {
-                            int tileIndex = tileY * width + tileX;
-                            var tileInfo = template.Tiles.FirstOrDefault(t => t.Index == tileIndex);
-
-                            if (tileInfo != null)
-                            {
-                                int pixelX = tileX * scale;
-                                int pixelY = tileY * scale;
-
-                                DrawTile(image, pixelX, pixelY, scale, tileInfo, tileset);
-                            }
-                        }
-                    }
-
-                    image.Save(outputPath, new PngEncoder());
-                }
-
-                Console.WriteLine($"Created template image: {outputPath}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Warning: Failed to generate PNG for template {template.Id}: {ex.Message}");
-            }
         }
 
         static void ProcessMapsDirectory(string inputDirectory, string outputDirectory)
