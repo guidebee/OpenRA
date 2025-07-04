@@ -2,7 +2,7 @@
   "profiles": {
     "OpenRA.MapReader": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Workspace\\OpenRA\\mods\\ra\\maps\\allies-01"
+      "commandLineArgs": "C:\\Workspace\\OpenRA\\mods\\ra\\maps\\"
     }
   }
 }
