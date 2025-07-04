@@ -185,6 +185,9 @@ namespace OpenRA.MapReader
                 }
             }
             
+            // Track the cells with multiple tiles for Z-order calculation
+            var cellTileCount = new Dictionary<(int X, int Y), int>();
+            
             // Now read the binary map data
             using (var stream = package.GetStream("map.bin"))
             {
@@ -201,15 +204,52 @@ namespace OpenRA.MapReader
                     {
                         for (var j = 0; j < mapSize.Y; j++)
                         {
-                            var tile = stream.ReadUInt16();
-                            var index = stream.ReadUInt8();
+                            // Read tile type and index
+                            var tileBytes = new byte[3];
+                            stream.Read(tileBytes, 0, 3);
                             
+                            // The tile type is a ushort (2 bytes), stored in little-endian format
+                            var tileType = BitConverter.ToUInt16(tileBytes, 0);
+                            var tileIndex = tileBytes[2];
+                            
+                            // Count tiles per cell for Z-order calculation
+                            var key = (i, j);
+                            if (!cellTileCount.ContainsKey(key))
+                                cellTileCount[key] = 0;
+                            cellTileCount[key]++;
+                            
+                            // Track template information
+                            if (!mapJson.Templates.ContainsKey(tileType))
+                            {
+                                mapJson.Templates[tileType] = new TilesetTemplate
+                                {
+                                    Id = tileType,
+                                    Name = $"Template{tileType}",
+                                    Size = new int2(1, 1), // Assume 1x1 since we don't have actual size info
+                                    Tiles = new List<TemplateTileInfo>()
+                                };
+                            }
+                            
+                            // Add the tile index to the template if not already there
+                            var template = mapJson.Templates[tileType];
+                            if (!template.Tiles.Any(t => t.Index == tileIndex))
+                            {
+                                template.Tiles.Add(new TemplateTileInfo
+                                {
+                                    Index = tileIndex,
+                                    TerrainType = 0, // Unknown without actual tileset data
+                                    Height = 0      // Unknown without actual tileset data
+                                });
+                            }
+                            
+                            // Add tile with Z-order (the later it's processed, the higher the Z-order)
                             mapJson.Tiles.Add(new TileInfo
                             {
                                 X = i,
                                 Y = j,
-                                Type = tile,
-                                Index = index
+                                Type = tileType,
+                                Index = tileIndex,
+                                ZOrder = cellTileCount[key] - 1  // 0-based index for z-order
                             });
                         }
                     }

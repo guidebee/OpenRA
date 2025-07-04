@@ -10,7 +10,7 @@ namespace OpenRA.MapReader
         {
             try
             {
-                if (args.Length < 1)
+                if (args.Length < 1 || args[0] == "--help" || args[0] == "-h")
                 {
                     PrintUsage();
                     return;
@@ -63,6 +63,9 @@ namespace OpenRA.MapReader
             Console.WriteLine("  output-path  Optional path for the output JSON file (default: map.json in the same directory)");
             Console.WriteLine();
             Console.WriteLine("Example: OpenRA.MapReader path/to/map output/map.json");
+            Console.WriteLine();
+            Console.WriteLine("The JSON output includes information about tileset templates and the Z-order");
+            Console.WriteLine("of tiles for overlapping cells, which is useful for rendering the map correctly.");
         }
     }
 }

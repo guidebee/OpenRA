@@ -41,6 +41,9 @@ namespace OpenRA.MapReader
         
         [JsonProperty("players")]
         public Dictionary<string, PlayerInfo> Players { get; set; } = new Dictionary<string, PlayerInfo>();
+        
+        [JsonProperty("templates")]
+        public Dictionary<ushort, TilesetTemplate> Templates { get; set; } = new Dictionary<ushort, TilesetTemplate>();
     }
     
     public class TileInfo
@@ -56,6 +59,36 @@ namespace OpenRA.MapReader
         
         [JsonProperty("index")]
         public byte Index { get; set; }
+        
+        [JsonProperty("zOrder")]
+        public int ZOrder { get; set; }
+    }
+    
+    public class TilesetTemplate
+    {
+        [JsonProperty("id")]
+        public ushort Id { get; set; }
+        
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        
+        [JsonProperty("size")]
+        public int2 Size { get; set; }
+        
+        [JsonProperty("tiles")]
+        public List<TemplateTileInfo> Tiles { get; set; } = new List<TemplateTileInfo>();
+    }
+    
+    public class TemplateTileInfo
+    {
+        [JsonProperty("index")]
+        public byte Index { get; set; }
+        
+        [JsonProperty("terrainType")]
+        public byte TerrainType { get; set; }
+        
+        [JsonProperty("height")]
+        public byte Height { get; set; }
     }
     
     public class ResourceInfo
