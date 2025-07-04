@@ -2,7 +2,7 @@
   "profiles": {
     "OpenRA.MapReader": {
       "commandName": "Project",
-      "commandLineArgs": "--tileset temperate  --players 2"
+      "commandLineArgs": "C:\\Workspace\\OpenRA\\mods\\ra\\maps\\allies-01"
     }
   }
 }

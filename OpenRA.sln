@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.Analysis", "OpenRA.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.ReplayReader", "OpenRA.ReplayReader\OpenRA.ReplayReader.csproj", "{4B2919B0-60EF-4AC6-2D00-A44AE052E1C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.MapGenerator", "OpenRA.MapGenerator\OpenRA.MapGenerator.csproj", "{AB52BC0E-3049-D3A1-C777-A1CB176FDE6B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.MapReader", "OpenRA.MapReader\OpenRA.MapReader.csproj", "{AB484F31-7BAC-5E60-8655-70D44FA6C468}"
 EndProject
 Global
@@ -79,6 +81,10 @@ Global
 		{4B2919B0-60EF-4AC6-2D00-A44AE052E1C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B2919B0-60EF-4AC6-2D00-A44AE052E1C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B2919B0-60EF-4AC6-2D00-A44AE052E1C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB52BC0E-3049-D3A1-C777-A1CB176FDE6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB52BC0E-3049-D3A1-C777-A1CB176FDE6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB52BC0E-3049-D3A1-C777-A1CB176FDE6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB52BC0E-3049-D3A1-C777-A1CB176FDE6B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,4 +1,4 @@
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// A seedable random number generator
@@ -34,6 +34,14 @@ namespace OpenRA.MapReader
         public float NextFloat()
         {
             return (float)_random.NextDouble();
+        }
+        
+        /// <summary>
+        /// Returns a random double between 0.0 and 1.0
+        /// </summary>
+        public double NextDouble()
+        {
+            return _random.NextDouble();
         }
 
         /// <summary>

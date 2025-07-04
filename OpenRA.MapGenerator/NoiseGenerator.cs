@@ -1,4 +1,4 @@
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Generates Perlin noise for terrain generation
@@ -78,7 +78,7 @@ namespace OpenRA.MapReader
             foreach (float wavelength in wavelengths)
             {
                 float amps = AmpFunc(wavelength);
-                int subSize = ((int)((size / wavelength)) | 0) + 2;
+                int subSize = ((int)(size / wavelength) | 0) + 2;
                 float[] subNoise = GeneratePerlinNoise2D(subSize);
 
                 // Offsets should align to grid

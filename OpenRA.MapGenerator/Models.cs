@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace OpenRA.MapReader
+namespace OpenRA.MapGenerator
 {
     /// <summary>
     /// Represents a terrain template that can be placed on the map
@@ -80,5 +80,16 @@ namespace OpenRA.MapReader
         {
             Type = type;
         }
+    }
+
+    /// <summary>
+    /// Represents an entity on the map (structure, resource, spawn point, etc.)
+    /// </summary>
+    public class Entity
+    {
+        public string Type { get; set; }
+        public string Owner { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
     }
 }
