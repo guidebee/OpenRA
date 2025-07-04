@@ -1237,49 +1237,85 @@ namespace OpenRA.MapReader
 
         static void DrawBridge(Image<Rgba32> image, int x, int y, int size)
         {
-            var bridgeColor = new Rgba32(128, 99, 59, 255);
-            var woodColor = new Rgba32(160, 120, 70, 255);
-            var railColor = new Rgba32(100, 70, 40, 255);
-            var plankColor = new Rgba32(180, 140, 90, 255);
-            var highlightColor = new Rgba32(200, 160, 110, 255);
+            // In OpenRA, bridges are rendered over water with wooden planks and supports
+            // Color definitions for bridge components
             var waterColor = new Rgba32(64, 147, 206, 255);
-            var waterLightColor = new Rgba32(100, 183, 242, 255);
+            var waterHighlightColor = new Rgba32(100, 183, 242, 255);
+            var bridgeDeckColor = new Rgba32(140, 100, 60, 255); // Main bridge color
+            var plankColor = new Rgba32(165, 120, 70, 255); // Wood planks
+            var darkPlankColor = new Rgba32(120, 85, 45, 255); // Darker wood planks
+            var railingColor = new Rgba32(90, 60, 30, 255); // Bridge railing
+            var supportColor = new Rgba32(100, 70, 40, 255); // Vertical supports
+            var shadowColor = new Rgba32(30, 30, 30, 128); // Shadow under bridge
 
             image.Mutate(ctx =>
             {
-                // Fill with water as the base
+                // Fill the base with water
                 ctx.Fill(waterColor, new Rectangle(x, y, size, size));
 
                 var random = new Random((x + y) * 1000);
 
-                // Create some water texture
-                for (int py = y; py < y + size; py++)
+                // Add some water texture/highlights
+                for (int i = 0; i < size / 3; i++)
                 {
-                    for (int px = x; px < x + size; px++)
+                    int wx = x + random.Next(size);
+                    int wy = y + random.Next(size);
+                    int waveSize = random.Next(2, 4);
+
+                    for (int dx = -waveSize; dx <= waveSize; dx++)
                     {
-                        if (random.Next(100) < 20)
+                        for (int dy = -waveSize; dy <= waveSize; dy++)
                         {
-                            image[px, py] = waterLightColor;
+                            int px = wx + dx;
+                            int py = wy + dy;
+                            if (px >= x && px < x + size && py >= y && py < y + size)
+                            {
+                                double dist = Math.Sqrt(dx * dx + dy * dy);
+                                if (dist <= waveSize)
+                                    image[px, py] = waterHighlightColor;
+                            }
                         }
                     }
                 }
 
                 // Determine bridge direction (horizontal or vertical)
+                // In a real implementation, this would check adjacent tiles
                 bool horizontalBridge = true;
 
-                // Check surrounding pixels to determine bridge direction
+                // Check surrounding pixels to determine bridge direction if this is part of a larger image
                 if (x > 0 && y > 0 && x + size < image.Width && y + size < image.Height)
                 {
-                    Rgba32 leftPixel = image[x - 1, y + size / 2];
-                    Rgba32 rightPixel = image[x + size, y + size / 2];
-                    Rgba32 topPixel = image[x + size / 2, y - 1];
-                    Rgba32 bottomPixel = image[x + size / 2, y + size];
+                    bool leftConnected = false;
+                    bool rightConnected = false;
+                    bool topConnected = false;
+                    bool bottomConnected = false;
 
-                    bool horizontalConnection = ColorMatch(leftPixel, bridgeColor) || ColorMatch(rightPixel, bridgeColor);
-                    bool verticalConnection = ColorMatch(topPixel, bridgeColor) || ColorMatch(bottomPixel, bridgeColor);
+                    // Check pixels on each side to see if they're bridge colored
+                    for (int i = 0; i < size; i++)
+                    {
+                        // Left side
+                        var leftColor = image[x - 1, y + i];
+                        if (ColorMatch(leftColor, bridgeDeckColor))
+                            leftConnected = true;
 
-                    // If vertical connections are detected, make vertical bridge
-                    if (verticalConnection && !horizontalConnection)
+                        // Right side
+                        var rightColor = image[x + size, y + i];
+                        if (ColorMatch(rightColor, bridgeDeckColor))
+                            rightConnected = true;
+
+                        // Top side
+                        var topColor = image[x + i, y - 1];
+                        if (ColorMatch(topColor, bridgeDeckColor))
+                            topConnected = true;
+
+                        // Bottom side
+                        var bottomColor = image[x + i, y + size];
+                        if (ColorMatch(bottomColor, bridgeDeckColor))
+                            bottomConnected = true;
+                    }
+
+                    // If vertical connections exist but not horizontal, make a vertical bridge
+                    if ((topConnected || bottomConnected) && !(leftConnected || rightConnected))
                         horizontalBridge = false;
                 }
 
@@ -1289,52 +1325,76 @@ namespace OpenRA.MapReader
                     int bridgeY = y + size / 3;
                     int bridgeHeight = size / 3;
 
+                    // Bridge shadow on water
+                    for (int py = bridgeY + bridgeHeight; py < bridgeY + bridgeHeight + 5; py++)
+                    {
+                        if (py < y + size)
+                        {
+                            for (int px = x; px < x + size; px++)
+                            {
+                                if (random.Next(10) > 2) // Add some randomness to the shadow
+                                    image[px, py] = shadowColor;
+                            }
+                        }
+                    }
+
                     // Bridge deck
                     for (int py = bridgeY; py < bridgeY + bridgeHeight; py++)
                     {
                         for (int px = x; px < x + size; px++)
                         {
-                            image[px, py] = bridgeColor;
+                            image[px, py] = bridgeDeckColor;
+                        }
+                    }
+
+                    // Planks (horizontal lines across bridge)
+                    for (int px = x; px < x + size; px += 4)
+                    {
+                        for (int py = bridgeY + 2; py < bridgeY + bridgeHeight - 2; py++)
+                        {
+                            image[px, py] = (px / 4) % 2 == 0 ? plankColor : darkPlankColor;
+                            if (px + 1 < x + size)
+                                image[px + 1, py] = (px / 4) % 2 == 0 ? plankColor : darkPlankColor;
                         }
                     }
 
                     // Bridge railings
                     for (int px = x; px < x + size; px++)
                     {
-                        image[px, bridgeY] = railColor;
-                        image[px, bridgeY + bridgeHeight - 1] = railColor;
-
-                        // Bridge planks/slats
-                        if (px % 8 < 6)
-                        {
-                            for (int py = bridgeY + 2; py < bridgeY + bridgeHeight - 2; py++)
-                            {
-                                image[px, py] = plankColor;
-                            }
-                        }
+                        image[px, bridgeY] = railingColor;
+                        image[px, bridgeY + 1] = railingColor;
+                        image[px, bridgeY + bridgeHeight - 1] = railingColor;
+                        image[px, bridgeY + bridgeHeight - 2] = railingColor;
                     }
 
                     // Support pillars
-                    int pillarWidth = size / 10;
+                    int pillarWidth = size / 12;
                     for (int p = 0; p < 2; p++)
                     {
                         int pillarX = x + (p == 0 ? size / 4 : 3 * size / 4);
 
-                        for (int px = pillarX - pillarWidth / 2; px < pillarX + pillarWidth / 2; px++)
+                        // Draw thicker support pillar
+                        for (int px = pillarX - pillarWidth; px < pillarX + pillarWidth; px++)
                         {
                             for (int py = bridgeY + bridgeHeight; py < y + size; py++)
                             {
                                 if (px >= x && px < x + size)
-                                {
-                                    image[px, py] = woodColor;
-
-                                    // Add some texture/grain to the wood
-                                    if (random.Next(100) < 30)
-                                    {
-                                        image[px, py] = highlightColor;
-                                    }
-                                }
+                                    image[px, py] = supportColor;
                             }
+                        }
+
+                        // Draw diagonal supports
+                        for (int i = 0; i < bridgeHeight; i++)
+                        {
+                            int supportX1 = pillarX - i / 2;
+                            int supportX2 = pillarX + i / 2;
+                            int supportY = bridgeY + bridgeHeight - i;
+
+                            if (supportX1 >= x && supportX1 < x + size && supportY >= y && supportY < y + size)
+                                image[supportX1, supportY] = supportColor;
+
+                            if (supportX2 >= x && supportX2 < x + size && supportY >= y && supportY < y + size)
+                                image[supportX2, supportY] = supportColor;
                         }
                     }
                 }
@@ -1344,66 +1404,100 @@ namespace OpenRA.MapReader
                     int bridgeX = x + size / 3;
                     int bridgeWidth = size / 3;
 
+                    // Bridge shadow on water
+                    for (int px = bridgeX + bridgeWidth; px < bridgeX + bridgeWidth + 5; px++)
+                    {
+                        if (px < x + size)
+                        {
+                            for (int py = y; py < y + size; py++)
+                            {
+                                if (random.Next(10) > 2) // Add some randomness to the shadow
+                                    image[px, py] = shadowColor;
+                            }
+                        }
+                    }
+
                     // Bridge deck
                     for (int px = bridgeX; px < bridgeX + bridgeWidth; px++)
                     {
                         for (int py = y; py < y + size; py++)
                         {
-                            image[px, py] = bridgeColor;
+                            image[px, py] = bridgeDeckColor;
+                        }
+                    }
+
+                    // Planks (horizontal lines across bridge)
+                    for (int py = y; py < y + size; py += 4)
+                    {
+                        for (int px = bridgeX + 2; px < bridgeX + bridgeWidth - 2; px++)
+                        {
+                            image[px, py] = (py / 4) % 2 == 0 ? plankColor : darkPlankColor;
+                            if (py + 1 < y + size)
+                                image[px, py + 1] = (py / 4) % 2 == 0 ? plankColor : darkPlankColor;
                         }
                     }
 
                     // Bridge railings
                     for (int py = y; py < y + size; py++)
                     {
-                        image[bridgeX, py] = railColor;
-                        image[bridgeX + bridgeWidth - 1, py] = railColor;
-
-                        // Bridge planks/slats
-                        if (py % 8 < 6)
-                        {
-                            for (int px = bridgeX + 2; px < bridgeX + bridgeWidth - 2; px++)
-                            {
-                                image[px, py] = plankColor;
-                            }
-                        }
+                        image[bridgeX, py] = railingColor;
+                        image[bridgeX + 1, py] = railingColor;
+                        image[bridgeX + bridgeWidth - 1, py] = railingColor;
+                        image[bridgeX + bridgeWidth - 2, py] = railingColor;
                     }
 
                     // Support pillars
-                    int pillarHeight = size / 10;
+                    int pillarHeight = size / 12;
                     for (int p = 0; p < 2; p++)
                     {
                         int pillarY = y + (p == 0 ? size / 4 : 3 * size / 4);
 
-                        for (int py = pillarY - pillarHeight / 2; py < pillarY + pillarHeight / 2; py++)
+                        // Draw thicker support pillar
+                        for (int py = pillarY - pillarHeight; py < pillarY + pillarHeight; py++)
                         {
                             for (int px = x; px < bridgeX; px++)
                             {
                                 if (py >= y && py < y + size)
-                                {
-                                    image[px, py] = woodColor;
-
-                                    // Add some texture/grain to the wood
-                                    if (random.Next(100) < 30)
-                                    {
-                                        image[px, py] = highlightColor;
-                                    }
-                                }
+                                    image[px, py] = supportColor;
                             }
+                        }
 
+                        // Draw diagonal supports from left to center
+                        for (int i = 0; i < bridgeWidth; i++)
+                        {
+                            int supportY1 = pillarY - i / 2;
+                            int supportY2 = pillarY + i / 2;
+                            int supportX = bridgeX - i;
+
+                            if (supportY1 >= y && supportY1 < y + size && supportX >= x && supportX < x + size)
+                                image[supportX, supportY1] = supportColor;
+
+                            if (supportY2 >= y && supportY2 < y + size && supportX >= x && supportX < x + size)
+                                image[supportX, supportY2] = supportColor;
+                        }
+
+                        // Draw support pillar on right side too
+                        for (int py = pillarY - pillarHeight; py < pillarY + pillarHeight; py++)
+                        {
                             for (int px = bridgeX + bridgeWidth; px < x + size; px++)
                             {
                                 if (py >= y && py < y + size)
-                                {
-                                    image[px, py] = woodColor;
-
-                                    // Add some texture/grain to the wood
-                                    if (random.Next(100) < 30)
-                                    {
-                                        image[px, py] = highlightColor;
-                                    }
-                                }
+                                    image[px, py] = supportColor;
                             }
+                        }
+
+                        // Draw diagonal supports from right to center
+                        for (int i = 0; i < bridgeWidth; i++)
+                        {
+                            int supportY1 = pillarY - i / 2;
+                            int supportY2 = pillarY + i / 2;
+                            int supportX = bridgeX + bridgeWidth + i - 1;
+
+                            if (supportY1 >= y && supportY1 < y + size && supportX >= x && supportX < x + size)
+                                image[supportX, supportY1] = supportColor;
+
+                            if (supportY2 >= y && supportY2 < y + size && supportX >= x && supportX < x + size)
+                                image[supportX, supportY2] = supportColor;
                         }
                     }
                 }
