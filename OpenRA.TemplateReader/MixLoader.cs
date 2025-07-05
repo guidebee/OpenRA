@@ -129,16 +129,14 @@ namespace OpenRA.TemplateReader
             }
 
             return result;
-        }
-
-        public byte[] GetTemplateFromMix(string tileset, string templateName)
+        }        public byte[] GetTemplateFromMix(string tileset, string templateName)
         {
             // Template files typically have extensions matching the tileset
             // For example: temperat.t01.tem, desert.t01.des, snow.t01.sno, etc.
             string extension = GetTemplateExtension(tileset);
-
-            // Try various naming patterns
-            string[] possibleNames = new[]
+            
+            // Try various naming patterns - expanded to cover more possibilities
+            var possibleNames = new List<string>
             {
                 templateName,                                // Direct match (if templateName already has extension)
                 $"{templateName}{extension}",                // Simple template name with extension
@@ -146,6 +144,42 @@ namespace OpenRA.TemplateReader
                 $"{tileset}.{templateName}{extension}",      // Full pattern with tileset prefix and extension
                 $"{templateName.Replace(extension, "")}{extension}" // Fix double extension
             };
+            
+            // Add more template name patterns for special types
+            
+            // For template IDs like 115, try different prefix styles
+            if (int.TryParse(templateName.Replace(".tem", "").Replace(".sno", "").Replace(".des", "").Replace(".int", ""), out int templateId))
+            {
+                // Add standard formats t[id], d[id], s[id], etc.
+                possibleNames.Add($"t{templateId:D2}{extension}");
+                possibleNames.Add($"t{templateId:D3}{extension}");
+                
+                // Special cases for river templates (rv prefix)
+                if (templateId >= 0 && templateId <= 20)
+                {
+                    possibleNames.Add($"rv{templateId:D2}{extension}");
+                    possibleNames.Add($"rv{templateId:D2}");
+                }
+                
+                // Special cases for road templates (d prefix)
+                if (templateId >= 0 && templateId <= 50)
+                {
+                    possibleNames.Add($"d{templateId:D2}{extension}");
+                    possibleNames.Add($"d{templateId:D2}");
+                }
+            }
+            
+            // For river templates like rv04.tem
+            if (templateName.StartsWith("rv", StringComparison.OrdinalIgnoreCase))
+            {
+                var baseName = templateName.Replace(".tem", "").Replace(".sno", "").Replace(".des", "").Replace(".int", "");
+                possibleNames.Add($"{baseName}{extension}");
+                possibleNames.Add($"{baseName}");
+            }
+
+            // Add debug logging to show the templates we're looking for
+            Console.WriteLine($"Looking for template: {templateName} in tileset: {tileset}");
+            Console.WriteLine($"Trying these patterns: {string.Join(", ", possibleNames.Take(5))}...");
 
             foreach (var name in possibleNames)
             {
@@ -154,6 +188,81 @@ namespace OpenRA.TemplateReader
                 {
                     Console.WriteLine($"Found template {name} in {tileset} MIX file");
                     return data;
+                }
+            }
+
+            // Special handling for specific templates
+            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) || 
+                (templateId == 115 && tileset.Equals("temperat", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Try some alternative tilesets
+                foreach (var alternateTileset in new[] { "temperat", "snow", "winter", "interior", "desert" })
+                {
+                    if (alternateTileset != tileset)
+                    {
+                        Console.WriteLine($"Trying alternate tileset {alternateTileset} for rv04.tem");
+                        byte[] data = ExtractFile(alternateTileset, "rv04.tem");
+                        if (data != null && data.Length > 0)
+                        {
+                            Console.WriteLine($"Found rv04.tem in {alternateTileset} MIX file");
+                            return data;
+                        }
+                    }
+                }
+                
+                // Try general mix files with different file naming
+                foreach (var generalTileset in new[] { "general", "local", "conquer" })
+                {
+                    byte[] data = ExtractFile(generalTileset, "rv04.tem");
+                    if (data != null && data.Length > 0)
+                    {
+                        Console.WriteLine($"Found rv04.tem in {generalTileset} MIX file");
+                        return data;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Warning: Template {templateName} not found in any {tileset} MIX file");
+            return null;
+
+            foreach (var name in possibleNames)
+            {
+                byte[] data = ExtractFile(tileset, name);
+                if (data != null && data.Length > 0)
+                {
+                    Console.WriteLine($"Found template {name} in {tileset} MIX file");
+                    return data;
+                }
+            }
+
+            // Special handling for specific templates
+            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) || 
+                (templateId == 115 && tileset.Equals("temperat", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Try some alternative tilesets
+                foreach (var alternateTileset in new[] { "temperat", "snow", "winter", "interior", "desert" })
+                {
+                    if (alternateTileset != tileset)
+                    {
+                        Console.WriteLine($"Trying alternate tileset {alternateTileset} for rv04.tem");
+                        byte[] data = ExtractFile(alternateTileset, "rv04.tem");
+                        if (data != null && data.Length > 0)
+                        {
+                            Console.WriteLine($"Found rv04.tem in {alternateTileset} MIX file");
+                            return data;
+                        }
+                    }
+                }
+                
+                // Try general mix files with different file naming
+                foreach (var generalTileset in new[] { "general", "local", "conquer" })
+                {
+                    byte[] data = ExtractFile(generalTileset, "rv04.tem");
+                    if (data != null && data.Length > 0)
+                    {
+                        Console.WriteLine($"Found rv04.tem in {generalTileset} MIX file");
+                        return data;
+                    }
                 }
             }
 

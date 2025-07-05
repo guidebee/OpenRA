@@ -169,6 +169,34 @@ namespace OpenRA.TemplateReader
                     "conquer",
                     "hires"
                 };
+                
+                // Special case for river templates (rv*.tem)
+                if (imageName.StartsWith("rv", StringComparison.OrdinalIgnoreCase) ||
+                    (imageName.Equals("115", StringComparison.OrdinalIgnoreCase) && 
+                     tilesetPreference[0].Equals("temperat", StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Try searching specifically for rv04.tem in all mix files
+                    if (imageName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) || 
+                        imageName.Equals("115", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var tileset in tilesetPreference)
+                        {
+                            if (string.IsNullOrEmpty(tileset)) continue;
+                            
+                            var templateData = mixLoader.GetTemplateFromMix(tileset, "rv04.tem");
+                            if (templateData != null && templateData.Length > 0)
+                            {
+                                // Convert template data to image
+                                var image = templateConverter.ConvertTemplateToImage(templateData);
+                                if (image != null)
+                                {
+                                    Console.WriteLine($"Loaded template image for rv04.tem from {tileset} MIX");
+                                    return image;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 foreach (var tileset in tilesetPreference)
                 {
@@ -271,7 +299,8 @@ namespace OpenRA.TemplateReader
                 templateName.Contains("shore") ||
                 templateName.Contains("sh") ||
                 templateName.Contains("bridge") ||
-                templateName.Contains("road"))
+                templateName.Contains("road") || 
+                templateName.Contains("rv"))  // River templates use rv prefix
                 return "temperat";
 
             if (templateName.Contains("ice") ||
@@ -294,12 +323,14 @@ namespace OpenRA.TemplateReader
                 {
                     return potentialTileset;
                 }
-            }
-
-            // For template id numbers, default to temperat
+            }            // For template id numbers, default to temperat
             if (templateName.All(c => char.IsDigit(c)))
                 return "temperat";
-
+                
+            // Special cases for known templates
+            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase))
+                return "temperat";
+            
             // If we can't determine, default to "temperat" which is the most common
             return "temperat";
         }

@@ -171,7 +171,37 @@ namespace OpenRA.TemplateReader
                 { 0x54303137, "t017.tem" },     // T017
                 { 0x54303138, "t018.tem" },     // T018
                 { 0x54303231, "t021.tem" },     // T021
-
+                
+                // River templates (using CRC32 hash values)
+                { 0x3F4F923E, "rv00.tem" },   // RV00
+                { 0x3F4F923F, "rv01.tem" },   // RV01
+                { 0x3F4F9240, "rv02.tem" },   // RV02
+                { 0x3F4F9241, "rv03.tem" },   // RV03
+                { 0x1AF81E8E, "rv04.tem" },   // RV04 - This is the actual CRC32 hash
+                { 0x3F4F9243, "rv05.tem" },   // RV05
+                { 0x3F4F9244, "rv06.tem" },   // RV06
+                { 0x3F4F9245, "rv07.tem" },   // RV07
+                { 0x3F4F9246, "rv08.tem" },   // RV08
+                { 0x3F4F9247, "rv09.tem" },   // RV09
+                { 0x3F4F9248, "rv10.tem" },   // RV10
+                { 0x3F4F9249, "rv11.tem" },   // RV11
+                { 0x3F4F924A, "rv12.tem" },   // RV12
+                { 0x3F4F924B, "rv13.tem" },   // RV13
+                { 0x3F4F924C, "rv14.tem" },   // RV14
+                { 0x3F4F924D, "rv15.tem" },   // RV15
+                
+                // Road templates (using CRC32 hash values)
+                { 0x2C3D2C64, "d00.tem" },      // D00
+                { 0x2C3D2C65, "d01.tem" },      // D01
+                { 0x2C3D2C72, "d14.tem" },      // D14
+                { 0x2C3D2C73, "d15.tem" },      // D15
+                { 0x21C3D2C6, "d16.tem" },      // D16 - This is the actual CRC32 hash
+                { 0x2C3D2C9C, "d44.tem" },      // D44
+                { 0x2C3D2C9D, "d45.tem" },      // D45
+                
+                // CRC32 hashes for some common files
+                { 0x21C3D2C6, "d16.tem" },      // CRC32 hash for d16.tem (road template)
+                
                 // Snow templates
                 { 0x534E4F57, "snow.sno" },     // SNOW
                 { 0x53303030, "s000.sno" },     // S000
