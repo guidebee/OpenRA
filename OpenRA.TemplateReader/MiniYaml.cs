@@ -72,17 +72,17 @@ namespace OpenRA
                     {
                         var nodes = levels[levels.Count - 1];
                         levels.RemoveAt(levels.Count - 1);
-                        
+
                         if (levels.Count > 0 && levels[levels.Count - 1].Count > 0)
                         {
                             var lastNode = levels[levels.Count - 1][levels[levels.Count - 1].Count - 1];
                             lastNode.Value.Nodes.AddRange(nodes);
-                            
+
                             // Update the nodes dictionary
                             foreach (var node in nodes)
                                 lastNode.Value.NodesDict.Add(node.Key, node.Value);
                         }
-                        
+
                         currentDepth--;
                     }
                 }
@@ -96,12 +96,12 @@ namespace OpenRA
             {
                 var nodes = levels[levels.Count - 1];
                 levels.RemoveAt(levels.Count - 1);
-                
+
                 if (levels[levels.Count - 1].Count > 0)
                 {
                     var lastNode = levels[levels.Count - 1][levels[levels.Count - 1].Count - 1];
                     lastNode.Value.Nodes.AddRange(nodes);
-                    
+
                     // Update the nodes dictionary
                     foreach (var node in nodes)
                         lastNode.Value.NodesDict.Add(node.Key, node.Value);

@@ -151,13 +151,55 @@ namespace OpenRA.TemplateReader
                 int imageWidth = template.Size.X * scale;
                 int imageHeight = template.Size.Y * scale;
 
-                // Create a new image
+                // Try to load original template image if available
+                Image<Rgba32> originalImage = null;
+                string originalImagePath = null;
+
+                if (template.Images != null && template.Images.Length > 0)
+                {
+                    // Use the first image as reference
+                    var imageExporter = new TemplateImageExporter(ResolveGamePath(Environment.CurrentDirectory));
+                    originalImage = imageExporter.LoadTemplateImage(template.Images[0]);
+
+                    if (originalImage != null)
+                    {
+                        Console.WriteLine($"Using original template image: {template.Images[0]}");
+                        originalImagePath = template.Images[0];
+                    }
+                }
+
+                // Create a new visualization image
                 using (var image = new Image<Rgba32>(imageWidth, imageHeight))
                 {
                     // Fill with background color
                     image.Mutate(ctx => ctx.Fill(SixLabors.ImageSharp.Color.LightGray));
 
-                    // Draw each tile
+                    // If we have the original image, try to render it as background
+                    if (originalImage != null)
+                    {
+                        try
+                        {
+                            // Resize the original image to fit our visualization
+                            originalImage.Mutate(ctx => ctx.Resize(new ResizeOptions
+                            {
+                                Size = new SixLabors.ImageSharp.Size(imageWidth, imageHeight),
+                                Mode = ResizeMode.Stretch
+                            }));
+
+                            // Copy the original image to our visualization
+                            image.Mutate(ctx => ctx.DrawImage(originalImage, new Point(0, 0), 0.7f)); // 70% opacity
+
+                            // We'll still draw our tile overlays, but with higher transparency
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Warning: Could not use original image as background: {ex.Message}");
+                            originalImage = null; // Fall back to procedural rendering
+                        }
+                    }
+
+                    // Draw each tile with data overlay
+                    bool useTransparentOverlay = originalImage != null;
                     for (int y = 0; y < template.Size.Y; y++)
                     {
                         for (int x = 0; x < template.Size.X; x++)
@@ -173,72 +215,48 @@ namespace OpenRA.TemplateReader
                                 int tileX = x * scale;
                                 int tileY = y * scale;
 
-                                DrawTile(image, tileX, tileY, scale, tileInfo, tileset);
+                                // If we're using the original image as background, draw a more transparent overlay
+                                if (useTransparentOverlay)
+                                {
+                                    DrawTileOverlay(image, tileX, tileY, scale, tileInfo, tileset);
+                                }
+                                else
+                                {
+                                    DrawTile(image, tileX, tileY, scale, tileInfo, tileset);
+                                }
                             }
                         }
                     }
 
                     // Add a border around the template for clarity
-                    image.Mutate(ctx => 
+                    image.Mutate(ctx =>
                     {
                         var borderColor = SixLabors.ImageSharp.Color.Black;
                         ctx.Draw(borderColor, 2, new SixLabors.ImageSharp.Rectangle(0, 0, imageWidth, imageHeight));
-                        
-                        // Draw template ID and info in the bottom-right corner
-                        try
-                        {
-                            var font = SystemFonts.CreateFont("Arial", 16, FontStyle.Bold);
-                            var templateInfo = $"Template {template.Id} - {tileset}";
-                            if (template.Images != null && template.Images.Length > 0)
-                            {
-                                templateInfo += $" ({string.Join(", ", template.Images)})";
-                            }
-                            
-                            // Draw text with background for better visibility
-                            var textColor = SixLabors.ImageSharp.Color.White;
-                            var bgColor = new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 180));
-                            var textSize = TextMeasurer.Measure(templateInfo, new TextOptions(font));
-                            var textPos = new PointF(imageWidth - textSize.Width - 10, imageHeight - textSize.Height - 10);
-                            
-                            ctx.Fill(bgColor, new RectangleF(textPos.X - 5, textPos.Y - 5, textSize.Width + 10, textSize.Height + 10));
-                            ctx.DrawText(templateInfo, font, textColor, textPos);
-                        }
-                        catch (Exception textEx)
-                        {
-                            Console.WriteLine($"Warning: Could not render text: {textEx.Message}");
-                        }
                     });
 
                     // Save the image
                     image.Save(outputPath);
+
+                    // Clean up the original image if we used it
+                    originalImage?.Dispose();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Warning: Failed to generate template PNG: {ex.Message}");
-                
+
                 // Create a minimal fallback image
                 try
                 {
                     using (var fallbackImage = new Image<Rgba32>(200, 100))
                     {
-                        fallbackImage.Mutate(ctx => 
+                        fallbackImage.Mutate(ctx =>
                         {
                             ctx.Fill(SixLabors.ImageSharp.Color.LightGray);
                             ctx.Draw(SixLabors.ImageSharp.Color.Black, 2, new SixLabors.ImageSharp.Rectangle(0, 0, 200, 100));
-                            
-                            try
-                            {
-                                var font = SystemFonts.CreateFont("Arial", 12);
-                                ctx.DrawText($"Template {template.Id}\nTileset: {tileset}\nSize: {template.Size.X}x{template.Size.Y}", 
-                                    font, SixLabors.ImageSharp.Color.Black, new PointF(10, 10));
-                            }
-                            catch
-                            {
-                                // Ignore font errors in fallback
-                            }
                         });
-                        
+
                         fallbackImage.Save(outputPath);
                     }
                 }
@@ -255,10 +273,10 @@ namespace OpenRA.TemplateReader
             byte terrainType = tileInfo.TerrainType;
             byte height = tileInfo.Height;
             byte rampType = tileInfo.RampType;
-            
+
             // Create a color based on the terrain type and height
             SixLabors.ImageSharp.Color tileColor;
-            
+
             switch (tileset.ToUpperInvariant())
             {
                 case "DESERT":
@@ -277,23 +295,23 @@ namespace OpenRA.TemplateReader
                     tileColor = DrawGenericTerrain(terrainType, height, rampType);
                     break;
             }
-            
+
             // Draw the tile
             image.Mutate(ctx =>
             {
                 // Fill the tile with the base color
                 ctx.Fill(tileColor, new SixLabors.ImageSharp.Rectangle(x, y, size, size));
-                
+
                 // Draw a border around the tile
                 ctx.Draw(new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 100)), 1, new SixLabors.ImageSharp.Rectangle(x, y, size, size));
-                
+
                 // Draw height value in the center of the tile
                 try
                 {
                     var font = SystemFonts.CreateFont("Arial", 10);
                     var heightText = height.ToString();
                     var terrainText = $"T{terrainType}";
-                    
+
                     ctx.DrawText(heightText, font, SixLabors.ImageSharp.Color.Black, new PointF(x + size / 2 - 5, y + size / 2 - 5));
                     ctx.DrawText(terrainText, font, SixLabors.ImageSharp.Color.Black, new PointF(x + 2, y + 2));
                 }
@@ -301,7 +319,7 @@ namespace OpenRA.TemplateReader
                 {
                     // Ignore text rendering errors
                 }
-                
+
                 // If it's a ramp, indicate that
                 if (rampType > 0)
                 {
@@ -311,11 +329,124 @@ namespace OpenRA.TemplateReader
             });
         }
 
+        private static void DrawTileOverlay(Image<Rgba32> image, int x, int y, int size, TemplateTileExportInfo tileInfo, string tileset)
+        {
+            // Get terrain type and height information
+            byte terrainType = tileInfo.TerrainType;
+            byte height = tileInfo.Height;
+            byte rampType = tileInfo.RampType;
+
+            // Draw a semi-transparent overlay for the tile
+            image.Mutate(ctx =>
+            {
+                // Draw a translucent border around the tile
+                ctx.Draw(new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 80)), 1,
+                    new SixLabors.ImageSharp.Rectangle(x, y, size, size));
+
+                // Draw a small colored rectangle in the corner to indicate terrain type
+                var indicatorSize = size / 4;
+                var terrainColor = GetTerrainTypeColor(terrainType, tileset);
+                // Create a semi-transparent version of the terrain color
+                var rgba = terrainColor.ToPixel<SixLabors.ImageSharp.PixelFormats.Rgba32>();
+                terrainColor = new SixLabors.ImageSharp.Color(
+                    new SixLabors.ImageSharp.PixelFormats.Rgba32(
+                        rgba.R, rgba.G, rgba.B, 120)); // Semi-transparent
+
+                ctx.Fill(terrainColor, new SixLabors.ImageSharp.Rectangle(x, y, indicatorSize, indicatorSize));
+
+                // Draw height value in the center of the tile with a slight background for visibility
+                try
+                {
+                    var font = SystemFonts.CreateFont("Arial", 10, FontStyle.Bold);
+                    var heightText = height.ToString();
+                    var heightTextBg = new SixLabors.ImageSharp.Color(
+                        new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 255, 255, 160));
+
+                    // Small background for height text
+                    var textSize = TextMeasurer.Measure(heightText, new TextOptions(font));
+                    var textPos = new PointF(x + size / 2 - textSize.Width / 2, y + size / 2 - textSize.Height / 2);
+                    ctx.Fill(heightTextBg, new RectangleF(textPos.X - 2, textPos.Y - 2, textSize.Width + 4, textSize.Height + 4));
+
+                    // Draw the height number
+                    ctx.DrawText(heightText, font, SixLabors.ImageSharp.Color.Black, textPos);
+
+                    // Draw tiny terrain type indicator in top-left
+                    var terrainText = $"T{terrainType}";
+                    ctx.DrawText(terrainText, font,
+                        new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 200)),
+                        new PointF(x + 2, y + 2));
+                }
+                catch
+                {
+                    // Ignore text rendering errors
+                }
+
+                // If it's a ramp, indicate that with a semi-transparent line
+                if (rampType > 0)
+                {
+                    // Draw diagonal line to indicate ramp
+                    ctx.DrawLines(
+                        new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 0, 0, 150)),
+                        2, new PointF(x, y + size), new PointF(x + size, y));
+                }
+            });
+        }
+
+        private static SixLabors.ImageSharp.Color GetTerrainTypeColor(byte terrainType, string tileset)
+        {
+            // Return a color that represents the terrain type for the overlay
+            switch (tileset.ToUpperInvariant())
+            {
+                case "DESERT":
+                    switch (terrainType)
+                    {
+                        case 0: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(230, 210, 160, 255)); // Sand
+                        case 1: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(220, 190, 140, 255)); // Dunes
+                        case 2: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(180, 150, 110, 255)); // Rock
+                        case 3: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(150, 120, 90, 255));  // Cliff
+                        default: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(200, 180, 130, 255));
+                    }
+
+                case "TEMPERAT":
+                    switch (terrainType)
+                    {
+                        case 0: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(160, 200, 120, 255)); // Clear
+                        case 1: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(140, 170, 90, 255));  // Rough
+                        case 2: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(150, 140, 120, 255)); // Rock
+                        case 3: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(170, 160, 140, 255)); // Road
+                        case 4: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(100, 130, 190, 255)); // Water
+                        default: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(150, 180, 110, 255));
+                    }
+
+                case "SNOW":
+                    switch (terrainType)
+                    {
+                        case 0: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(240, 240, 250, 255)); // Snow
+                        case 1: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(210, 230, 255, 255)); // Ice
+                        case 2: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(160, 160, 180, 255)); // Rock
+                        case 3: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(150, 150, 160, 255)); // Road
+                        default: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(210, 220, 240, 255));
+                    }
+
+                case "INTERIOR":
+                    switch (terrainType)
+                    {
+                        case 0: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(180, 180, 180, 255)); // Floor
+                        case 1: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(140, 140, 140, 255)); // Wall
+                        default: return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(160, 160, 160, 255));
+                    }
+
+                default:
+                    // Generic colors for unknown tilesets
+                    return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(180, 180, 180, 255));
+            }
+        }
+
         private static SixLabors.ImageSharp.Color DrawDesertTerrain(byte terrainType, byte height, byte rampType)
         {
             // Desert palette - yellows, browns, tans
             byte r, g, b;
-            
+
             switch (terrainType)
             {
                 case 0: // Sand
@@ -344,7 +475,7 @@ namespace OpenRA.TemplateReader
                     b = (byte)(130 - height * 5);
                     break;
             }
-            
+
             return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(r, g, b, 255));
         }
 
@@ -352,7 +483,7 @@ namespace OpenRA.TemplateReader
         {
             // Temperate palette - greens, browns
             byte r, g, b;
-            
+
             switch (terrainType)
             {
                 case 0: // Clear
@@ -386,7 +517,7 @@ namespace OpenRA.TemplateReader
                     b = (byte)(110 - height * 4);
                     break;
             }
-            
+
             return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(r, g, b, 255));
         }
 
@@ -394,7 +525,7 @@ namespace OpenRA.TemplateReader
         {
             // Snow palette - whites, light blues
             byte r, g, b;
-            
+
             switch (terrainType)
             {
                 case 0: // Snow
@@ -423,7 +554,7 @@ namespace OpenRA.TemplateReader
                     b = (byte)(240 - height * 5);
                     break;
             }
-            
+
             return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(r, g, b, 255));
         }
 
@@ -431,7 +562,7 @@ namespace OpenRA.TemplateReader
         {
             // Interior palette - grays, tans
             byte r, g, b;
-            
+
             switch (terrainType)
             {
                 case 0: // Floor
@@ -450,7 +581,7 @@ namespace OpenRA.TemplateReader
                     b = (byte)(160 - height * 4);
                     break;
             }
-            
+
             return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(r, g, b, 255));
         }
 
@@ -461,7 +592,7 @@ namespace OpenRA.TemplateReader
             byte r = (byte)(baseValue - height * 5);
             byte g = (byte)(baseValue - height * 3);
             byte b = (byte)(baseValue - height * 8);
-            
+
             return new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(r, g, b, 255));
         }
 
@@ -483,7 +614,7 @@ namespace OpenRA.TemplateReader
             if (Directory.Exists(modsPath))
             {
                 Console.WriteLine($"Found OpenRA root directory with mods folder: {path}");
-                
+
                 // Check for standard mod directories
                 var raPath = Path.Combine(modsPath, "ra");
                 if (Directory.Exists(raPath))
@@ -491,26 +622,26 @@ namespace OpenRA.TemplateReader
                     Console.WriteLine($"Found RA mod directory: {raPath}");
                     return raPath;
                 }
-                
+
                 var cncPath = Path.Combine(modsPath, "cnc");
                 if (Directory.Exists(cncPath))
                 {
                     Console.WriteLine($"Found CnC mod directory: {cncPath}");
                     return cncPath;
                 }
-                
+
                 var d2kPath = Path.Combine(modsPath, "d2k");
                 if (Directory.Exists(d2kPath))
                 {
                     Console.WriteLine($"Found D2K mod directory: {d2kPath}");
                     return d2kPath;
                 }
-                
+
                 // If no specific mod directory was found, return the mods directory
                 Console.WriteLine($"No specific mod directory found, using mods directory: {modsPath}");
                 return modsPath;
             }
-            
+
             // If none of the above matched, return the original path
             Console.WriteLine($"Using original path: {path}");
             return path;

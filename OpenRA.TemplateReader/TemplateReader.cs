@@ -62,8 +62,8 @@ namespace OpenRA.TemplateReader
             // Try to read template directly from a template file
             var templateExtension = GetTilesetExtension(normalizedName);
             var templateFileName = $"t{templateId:D2}{templateExtension}";
-            
-            var templateFiles = allFiles.Where(f => 
+
+            var templateFiles = allFiles.Where(f =>
                 Path.GetFileName(f).Equals(templateFileName, StringComparison.OrdinalIgnoreCase));
 
             var templateFilePath = templateFiles.FirstOrDefault();
@@ -92,12 +92,12 @@ namespace OpenRA.TemplateReader
             {
                 // Try alternate template file naming formats if the standard one isn't found
                 Console.WriteLine($"Standard template file '{templateFileName}' not found, trying alternatives...");
-                
+
                 // Look for other possible template files
-                var alternateTemplateFiles = allFiles.Where(f => 
+                var alternateTemplateFiles = allFiles.Where(f =>
                     Path.GetExtension(f).Equals(templateExtension, StringComparison.OrdinalIgnoreCase) &&
                     (f.Contains($"{templateId}") || f.Contains($"{templateId:D3}")));
-                
+
                 foreach (var alternateFile in alternateTemplateFiles)
                 {
                     Console.WriteLine($"Trying alternate template file: {alternateFile}");
@@ -148,10 +148,10 @@ namespace OpenRA.TemplateReader
 
                 // Use OpenRA's MiniYaml to parse the file
                 var yaml = MiniYaml.FromString(yamlContent, yamlPath);
-                
+
                 // Create list of terrain types for reference
                 var terrainTypes = new List<TerrainTypeInfo>();
-                
+
                 // Process the Terrain section to get terrain types
                 var terrainNode = yaml.FirstOrDefault(n => n.Key == "Terrain");
                 if (terrainNode != null)
@@ -177,7 +177,7 @@ namespace OpenRA.TemplateReader
                         }
                     }
                 }
-                
+
                 // If no terrain types were found, add some defaults
                 if (terrainTypes.Count == 0)
                 {
@@ -299,6 +299,40 @@ namespace OpenRA.TemplateReader
                                 // Return the template if it has tiles
                                 if (template.Tiles.Count > 0)
                                 {
+                                    // Generate a visual layout representation
+                                    var width = template.Size.X;
+                                    var height = template.Size.Y;
+                                    var layout = new string[height][];
+
+                                    for (int y = 0; y < height; y++)
+                                    {
+                                        layout[y] = new string[width];
+                                        for (int x = 0; x < width; x++)
+                                        {
+                                            int tileIndex = y * width + x;
+                                            var tile = template.Tiles.FirstOrDefault(t => t.Index == tileIndex);
+
+                                            if (tile != null)
+                                            {
+                                                // Find terrain type name for this tile
+                                                var terrainTypeName = "Unknown";
+                                                var terrainType = terrainTypes.FirstOrDefault(t => t.Index == tile.TerrainType);
+                                                if (terrainType != null)
+                                                {
+                                                    terrainTypeName = terrainType.Name;
+                                                }
+
+                                                layout[y][x] = terrainTypeName;
+                                            }
+                                            else
+                                            {
+                                                layout[y][x] = "Empty";
+                                            }
+                                        }
+                                    }
+
+                                    template.Layout = layout;
+
                                     return template;
                                 }
                             }
@@ -448,14 +482,14 @@ namespace OpenRA.TemplateReader
 
             // Check for short names first, then full names
             var lowerTileset = tileset.ToLowerInvariant();
-            
+
             // Common abbreviated formats
             if (lowerTileset.StartsWith("tem")) return ".tem";
             if (lowerTileset.StartsWith("sno")) return ".sno";
             if (lowerTileset.StartsWith("des")) return ".des";
             if (lowerTileset.StartsWith("int")) return ".int";
             if (lowerTileset.StartsWith("jun")) return ".jun";
-            
+
             // Full names
             return tileset.ToUpperInvariant() switch
             {

@@ -17,10 +17,10 @@ namespace OpenRA.TemplateReader
         {
             var b1 = s.ReadByte();
             var b2 = s.ReadByte();
-            
+
             if (b1 == -1 || b2 == -1)
                 throw new EndOfStreamException();
-                
+
             return (ushort)(b1 | (b2 << 8));
         }
     }

@@ -54,7 +54,7 @@ namespace OpenRA.TemplateReader
                 if (File.Exists(fullPath))
                     return File.OpenRead(fullPath);
             }
-            
+
             throw new FileNotFoundException($"File not found: {filename}");
         }
 
@@ -98,7 +98,7 @@ namespace OpenRA.TemplateReader
                 return cachedFiles;
 
             cachedFiles = new List<string>();
-            
+
             foreach (var basePath in basePaths)
             {
                 try
@@ -110,14 +110,14 @@ namespace OpenRA.TemplateReader
                         // Get YAML tileset definitions
                         var yamlFiles = Directory.GetFiles(tilesetsDir, "*.yaml", SearchOption.AllDirectories);
                         cachedFiles.AddRange(yamlFiles.Select(f => f.Substring(basePath.Length + 1).Replace('\\', '/')));
-                        
+
                         // Get template files
                         var templateFiles = Directory.GetFiles(tilesetsDir, "*.tem", SearchOption.AllDirectories)
                             .Concat(Directory.GetFiles(tilesetsDir, "*.des", SearchOption.AllDirectories))
                             .Concat(Directory.GetFiles(tilesetsDir, "*.sno", SearchOption.AllDirectories))
                             .Concat(Directory.GetFiles(tilesetsDir, "*.int", SearchOption.AllDirectories))
                             .Concat(Directory.GetFiles(tilesetsDir, "*.jun", SearchOption.AllDirectories));
-                        
+
                         cachedFiles.AddRange(templateFiles.Select(f => f.Substring(basePath.Length + 1).Replace('\\', '/')));
                     }
 
@@ -134,7 +134,7 @@ namespace OpenRA.TemplateReader
                     Console.WriteLine($"Error scanning directory {basePath}: {ex.Message}");
                 }
             }
-            
+
             return cachedFiles;
         }
     }
