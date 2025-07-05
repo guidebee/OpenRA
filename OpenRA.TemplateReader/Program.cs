@@ -82,6 +82,36 @@ namespace OpenRA.TemplateReader
                 // Create the template reader
                 var templateReader = new TemplateReader(resolvedGamePath);
 
+                // Display MIX file information
+                Console.WriteLine("Checking for original template files in OpenRA support directory...");
+                var mixLoader = new MixLoader();
+                var supportDirPath = mixLoader.GetSupportDir();
+                if (!string.IsNullOrEmpty(supportDirPath))
+                {
+                    Console.WriteLine($"Found OpenRA support directory: {supportDirPath}");
+                    var mixFiles = mixLoader.GetAvailableMixFiles();
+                    if (mixFiles.Count > 0)
+                    {
+                        Console.WriteLine($"Found {mixFiles.Count} MIX files in support directory:");
+                        foreach (var mix in mixFiles.Take(5))
+                        {
+                            Console.WriteLine($"  - {mix}");
+                        }
+                        if (mixFiles.Count > 5)
+                        {
+                            Console.WriteLine($"  - ...and {mixFiles.Count - 5} more");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No MIX files found in support directory.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("OpenRA support directory not found. Will use only filesystem templates.");
+                }
+
                 // Read the template
                 var templateData = templateReader.ReadTemplate(tileset, templateId);
 
@@ -255,6 +285,17 @@ namespace OpenRA.TemplateReader
                         {
                             ctx.Fill(SixLabors.ImageSharp.Color.LightGray);
                             ctx.Draw(SixLabors.ImageSharp.Color.Black, 2, new SixLabors.ImageSharp.Rectangle(0, 0, 200, 100));
+                            
+                            // Add a small note about missing original image - without disrupting the clean visual
+                            try
+                            {
+                                var font = SystemFonts.CreateFont("Arial", 9);
+                                ctx.DrawText("(Original image not found)", font, SixLabors.ImageSharp.Color.DarkGray, new PointF(10, 80));
+                            }
+                            catch
+                            {
+                                // Ignore font errors in fallback
+                            }
                         });
 
                         fallbackImage.Save(outputPath);
@@ -305,21 +346,6 @@ namespace OpenRA.TemplateReader
                 // Draw a border around the tile
                 ctx.Draw(new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 100)), 1, new SixLabors.ImageSharp.Rectangle(x, y, size, size));
 
-                // Draw height value in the center of the tile
-                try
-                {
-                    var font = SystemFonts.CreateFont("Arial", 10);
-                    var heightText = height.ToString();
-                    var terrainText = $"T{terrainType}";
-
-                    ctx.DrawText(heightText, font, SixLabors.ImageSharp.Color.Black, new PointF(x + size / 2 - 5, y + size / 2 - 5));
-                    ctx.DrawText(terrainText, font, SixLabors.ImageSharp.Color.Black, new PointF(x + 2, y + 2));
-                }
-                catch
-                {
-                    // Ignore text rendering errors
-                }
-
                 // If it's a ramp, indicate that
                 if (rampType > 0)
                 {
@@ -353,33 +379,6 @@ namespace OpenRA.TemplateReader
                         rgba.R, rgba.G, rgba.B, 120)); // Semi-transparent
 
                 ctx.Fill(terrainColor, new SixLabors.ImageSharp.Rectangle(x, y, indicatorSize, indicatorSize));
-
-                // Draw height value in the center of the tile with a slight background for visibility
-                try
-                {
-                    var font = SystemFonts.CreateFont("Arial", 10, FontStyle.Bold);
-                    var heightText = height.ToString();
-                    var heightTextBg = new SixLabors.ImageSharp.Color(
-                        new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 255, 255, 160));
-
-                    // Small background for height text
-                    var textSize = TextMeasurer.Measure(heightText, new TextOptions(font));
-                    var textPos = new PointF(x + size / 2 - textSize.Width / 2, y + size / 2 - textSize.Height / 2);
-                    ctx.Fill(heightTextBg, new RectangleF(textPos.X - 2, textPos.Y - 2, textSize.Width + 4, textSize.Height + 4));
-
-                    // Draw the height number
-                    ctx.DrawText(heightText, font, SixLabors.ImageSharp.Color.Black, textPos);
-
-                    // Draw tiny terrain type indicator in top-left
-                    var terrainText = $"T{terrainType}";
-                    ctx.DrawText(terrainText, font,
-                        new SixLabors.ImageSharp.Color(new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 0, 200)),
-                        new PointF(x + 2, y + 2));
-                }
-                catch
-                {
-                    // Ignore text rendering errors
-                }
 
                 // If it's a ramp, indicate that with a semi-transparent line
                 if (rampType > 0)

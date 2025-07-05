@@ -390,6 +390,13 @@ namespace OpenRA.TemplateReader
                     Tiles = new List<TemplateTileExportInfo>()
                 };
 
+                // Initialize the layout array
+                var layout = new string[height][];
+                for (int y = 0; y < height; y++)
+                {
+                    layout[y] = new string[width];
+                }
+
                 // Read tile data for each cell in the template
                 for (var y = 0; y < height; y++)
                 {
@@ -426,8 +433,14 @@ namespace OpenRA.TemplateReader
                             MinColor = new[] { 100, 100, 100, 255 },
                             MaxColor = new[] { 200, 200, 200, 255 }
                         });
+
+                        // Add to layout
+                        layout[y][x] = GetTerrainTypeName(terrainType, tilesetName);
                     }
                 }
+
+                // Set the layout in the template
+                template.Layout = layout;
 
                 // Set images to be extracted based on template ID
                 var extension = GetTilesetExtension(tilesetName);
@@ -466,11 +479,67 @@ namespace OpenRA.TemplateReader
                 MaxColor = new[] { 200, 200, 200, 255 }
             });
 
+            // Create a simple layout
+            template.Layout = new string[1][];
+            template.Layout[0] = new string[1];
+            template.Layout[0][0] = GetTerrainTypeName(0, tilesetName);
+
             // Set images to be extracted
             var extension = GetTilesetExtension(tilesetName);
             template.Images = new[] { $"t{templateId:D2}{extension}" };
 
             return template;
+        }
+
+        private string GetTerrainTypeName(byte terrainType, string tilesetName)
+        {
+            // Return a terrain type name based on the tileset and terrain type index
+            string tileset = tilesetName.ToUpperInvariant();
+            
+            switch (tileset)
+            {
+                case "DESERT":
+                    switch (terrainType)
+                    {
+                        case 0: return "Sand";
+                        case 1: return "Dunes";
+                        case 2: return "Rock";
+                        case 3: return "Cliff";
+                        default: return $"Desert{terrainType}";
+                    }
+
+                case "TEMPERAT":
+                    switch (terrainType)
+                    {
+                        case 0: return "Clear";
+                        case 1: return "Rough";
+                        case 2: return "Rock";
+                        case 3: return "Road";
+                        case 4: return "Water";
+                        default: return $"Temperat{terrainType}";
+                    }
+
+                case "SNOW":
+                    switch (terrainType)
+                    {
+                        case 0: return "Snow";
+                        case 1: return "Ice";
+                        case 2: return "Rock";
+                        case 3: return "Road";
+                        default: return $"Snow{terrainType}";
+                    }
+
+                case "INTERIOR":
+                    switch (terrainType)
+                    {
+                        case 0: return "Floor";
+                        case 1: return "Wall";
+                        default: return $"Interior{terrainType}";
+                    }
+
+                default:
+                    return $"Terrain{terrainType}";
+            }
         }
 
         private string GetTilesetExtension(string tileset)
