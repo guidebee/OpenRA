@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OpenRA.TilesetReader": {
+      "commandName": "Project",
+      "commandLineArgs": "--game-path ../mods/ra"
+    }
+  }
+}

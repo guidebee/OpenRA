@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.MapGenerator", "Open
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.MapReader", "OpenRA.MapReader\OpenRA.MapReader.csproj", "{AB484F31-7BAC-5E60-8655-70D44FA6C468}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.TilesetReader", "OpenRA.TilesetReader\OpenRA.TilesetReader.csproj", "{62804B60-9F4E-CCFF-9B91-39A21C29BDAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,6 +91,10 @@ Global
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB484F31-7BAC-5E60-8655-70D44FA6C468}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62804B60-9F4E-CCFF-9B91-39A21C29BDAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62804B60-9F4E-CCFF-9B91-39A21C29BDAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62804B60-9F4E-CCFF-9B91-39A21C29BDAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62804B60-9F4E-CCFF-9B91-39A21C29BDAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
