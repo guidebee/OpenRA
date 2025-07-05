@@ -12,6 +12,9 @@ namespace OpenRA.TilesetReader
         [JsonProperty("id")]
         public ushort Id { get; set; }
         
+        [JsonProperty("name")]
+        public string Name => $"Template{Id}";
+        
         [JsonProperty("size")]
         public int2 Size { get; set; }
         
@@ -36,7 +39,9 @@ namespace OpenRA.TilesetReader
         [JsonProperty("tiles")]
         public List<TemplateTileExportInfo> Tiles { get; set; } = new List<TemplateTileExportInfo>();
 
-        // Helper method to get tileset-specific image paths
+        /// <summary>
+        /// Helper method to get tileset-specific image paths
+        /// </summary>
         public string[] GetTilesetImages(string tileset)
         {
             if (Images == null || Images.Length == 0)
@@ -49,7 +54,9 @@ namespace OpenRA.TilesetReader
             return Images;
         }
         
-        // Helper method to get the appropriate extension for each tileset
+        /// <summary>
+        /// Helper method to get the appropriate extension for each tileset
+        /// </summary>
         private string GetTilesetExtension(string tileset)
         {
             return tileset.ToUpperInvariant() switch
@@ -82,10 +89,10 @@ namespace OpenRA.TilesetReader
         public byte RampType { get; set; }
         
         [JsonProperty("minColor")]
-        public int[] MinColor { get; set; }
+        public int[] MinColor { get; set; } = new[] { 100, 100, 100, 255 };
         
         [JsonProperty("maxColor")]
-        public int[] MaxColor { get; set; }
+        public int[] MaxColor { get; set; } = new[] { 200, 200, 200, 255 };
     }
     
     /// <summary>
@@ -113,5 +120,26 @@ namespace OpenRA.TilesetReader
         
         [JsonProperty("name")]
         public string Name { get; set; }
+    }
+    
+    /// <summary>
+    /// Overall tileset data containing all templates and terrain types
+    /// </summary>
+    public class TilesetData
+    {
+        public string Name { get; set; }
+        public Dictionary<ushort, TemplateExportInfo> Templates { get; set; } = new Dictionary<ushort, TemplateExportInfo>();
+        public List<TerrainTypeInfo> TerrainTypes { get; set; } = new List<TerrainTypeInfo>();
+        public TilesetIndexInfo Index { get; set; }
+    }
+
+    /// <summary>
+    /// Information about terrain types in the tileset
+    /// </summary>
+    public class TerrainTypeInfo
+    {
+        public byte Index { get; set; }
+        public string Name { get; set; }
+        public bool IsPassable { get; set; }
     }
 }
