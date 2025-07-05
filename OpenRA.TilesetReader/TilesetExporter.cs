@@ -13,6 +13,13 @@ namespace OpenRA.TilesetReader
 {
     public class TilesetExporter
     {
+        private readonly string gamePath;
+
+        public TilesetExporter(string gamePath)
+        {
+            this.gamePath = gamePath;
+        }
+
         public void Export(TilesetData tilesetData, string outputPath, bool exportImages)
         {
             // Create output directory if it doesn't exist
@@ -71,7 +78,8 @@ namespace OpenRA.TilesetReader
         {
             // Create a file system to read the original images
             var modDataLoader = new ModDataLoader();
-            var modData = modDataLoader.CreateFolderMods(new[] { Environment.CurrentDirectory });
+            // Use the same game path that the TilesetReader used
+            var modData = modDataLoader.CreateFolderMods(new[] { gamePath });
             var fileSystem = modData.ModFiles;
 
             foreach (var template in tilesetData.Templates.Values)
@@ -119,6 +127,9 @@ namespace OpenRA.TilesetReader
                 // If we can't process them directly, just copy the file
                 using (var sourceStream = fileSystem.Open(sourceFilePath))
                 {
+                    // Debug the source file size
+                    Console.WriteLine($"Processing image: {sourceFilePath}, Size: {sourceStream.Length} bytes");
+
                     // First attempt to load as a standard image format
                     try
                     {
@@ -134,9 +145,10 @@ namespace OpenRA.TilesetReader
                         image.Save(destFilePath);
                         return;
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         // If standard image loading fails, reset stream and continue with direct copy
+                        Console.WriteLine($"Failed to load as image: {ex.Message}. Falling back to direct copy.");
                         sourceStream.Position = 0;
                     }
 
@@ -151,11 +163,18 @@ namespace OpenRA.TilesetReader
             {
                 Console.WriteLine($"Warning: Error processing image: {ex.Message}");
 
-                // Fallback to direct copy
-                using (var sourceStream = fileSystem.Open(sourceFilePath))
-                using (var destStream = File.Create(destFilePath))
+                try
                 {
-                    sourceStream.CopyTo(destStream);
+                    // Fallback to direct copy
+                    using (var sourceStream = fileSystem.Open(sourceFilePath))
+                    using (var destStream = File.Create(destFilePath))
+                    {
+                        sourceStream.CopyTo(destStream);
+                    }
+                }
+                catch (Exception copyEx)
+                {
+                    Console.WriteLine($"Failed to copy file: {copyEx.Message}");
                 }
             }
         }
