@@ -55,7 +55,7 @@ namespace OpenRA.TemplateReader
 		{
 			// Create a dummy TerrainTemplateInfo with default values
 			var templateInfo = new TemplateInfo(1, "dummy", 1, 1);
-			
+
 			// Just return a dummy image for now - this can be enhanced later
 			return new Image<Rgba32>(24, 24);
 		}

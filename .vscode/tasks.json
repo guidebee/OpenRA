@@ -18,19 +18,39 @@
 			"label": "Run Utility",
 			"command": "dotnet ${workspaceRoot}/bin/OpenRA.Utility.dll ${input:modId} ${input:command}",
 			"type": "shell",
+		},
+		{
+			"label": "Run Template Reader",
+			"command": "dotnet ${workspaceRoot}/bin/OpenRA.TemplateReader.dll --tileset ${input:tileset} --template-id ${input:templateId} --mod ${input:modId} --game-path ${workspaceRoot}",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": []
 		}
 	],
 	"inputs": [
 		{
 			"id": "modId",
 			"description": "ID of the mod to run",
-			"default": "all",
+			"default": "ra",
 			"type": "promptString"
-		}, {
+		},
+		{
 			"id": "command",
 			"description": "Name of the command + parameters",
 			"default": "",
 			"type": "promptString"
 		},
+		{
+			"id": "tileset",
+			"description": "Tileset name (e.g., temperat, desert, snow)",
+			"default": "temperat",
+			"type": "promptString"
+		},
+		{
+			"id": "templateId",
+			"description": "Template ID to export",
+			"default": "401",
+			"type": "promptString"
+		}
 	]
 }
