@@ -92,31 +92,41 @@ namespace OpenRA.TemplateReader
         /// </summary>
         public Image<Rgba32> ConvertTemplateToImage(TemplateInfo templateInfo, Func<string, byte[]> imageLoader)
         {
-            if (templateInfo == null || templateInfo.Images == null || templateInfo.Images.Length == 0 || string.IsNullOrEmpty(templateInfo.Images[0]))
+            if (templateInfo == null || templateInfo.Images == null || templateInfo.Images.Length == 0)
             {
-                Console.WriteLine("Invalid template info or missing images");
+                Console.WriteLine("Invalid template info or missing images array");
                 return null;
             }
 
             try
             {
-                // Similar to how TerrainTemplatePreviewWidget works, use the first image in the Images array
-                var imageName = templateInfo.Images[0];
-                Console.WriteLine($"Loading template image: {imageName}");
-
-                // Load the image data using the provided loader function
-                var imageData = imageLoader(imageName);
-                if (imageData == null || imageData.Length < 2)
+                // Try each image in the Images array until we find one that works
+                // This follows the approach used in OpenRA.Mods.Common for template loading
+                foreach (var imageName in templateInfo.Images)
                 {
-                    Console.WriteLine($"Failed to load image data for {imageName}");
+                    if (string.IsNullOrEmpty(imageName))
+                        continue;
 
-                    // Create a generic placeholder for missing template images
-                    // This is better than having special cases for specific templates
-                    return CreatePlaceholderTemplate(templateInfo.Size.X, templateInfo.Size.Y, templateInfo.Id);
+                    Console.WriteLine($"Trying template image: {imageName}");
+
+                    // Load the image data using the provided loader function
+                    var imageData = imageLoader(imageName);
+                    if (imageData != null && imageData.Length >= 2)
+                    {
+                        Console.WriteLine($"Successfully loaded template image: {imageName}");
+                        // Create a template with the proper dimensions from the template info
+                        return ConvertTemplateToImage(imageData, templateInfo.Size.X, templateInfo.Size.Y);
+                    }
+                    
+                    Console.WriteLine($"Failed to load image data for {imageName}");
                 }
 
-                // Create a template with the proper dimensions from the template info
-                return ConvertTemplateToImage(imageData, templateInfo.Size.X, templateInfo.Size.Y);
+                // If we're here, all images failed to load
+                Console.WriteLine("All specified template images failed to load");
+                
+                // Create a generic placeholder for missing template images
+                // Use the same approach as OpenRA.Game for missing images
+                return CreatePlaceholderTemplate(templateInfo.Size.X, templateInfo.Size.Y, templateInfo.Id);
             }
             catch (Exception ex)
             {
@@ -126,7 +136,8 @@ namespace OpenRA.TemplateReader
         }
 
         /// <summary>
-        /// Creates a placeholder template image for when the original assets are not available
+        /// Creates a placeholder template image for when the original assets are not available.
+        /// This implementation aligns with how OpenRA.Game handles missing template images.
         /// </summary>
         public Image<Rgba32> CreatePlaceholderTemplate(int width, int height, ushort templateId)
         {
@@ -138,78 +149,172 @@ namespace OpenRA.TemplateReader
             int imageHeight = (int)(templateRect.Height * DefaultScale);
             var image = new Image<Rgba32>(imageWidth, imageHeight);
 
-            // Determine the type of template based on the ID to create a more appropriate placeholder
-            Color baseColor;
+            // Categorize the template based on ID to match the game's conventions
+            var templateCategory = GetTemplateCategory(templateId);
+            var baseColor = GetCategoryColor(templateCategory, templateId);
 
-            // Categorize templates by ID ranges - this is a simplification
-            if (templateId >= 100 && templateId < 120) // River templates
-            {
-                // Use a blue color for river templates
-                baseColor = new Color(new Rgba32(82, 126, 185, 220));
-            }
-            else if (templateId >= 200 && templateId < 220) // Shore templates
-            {
-                // Use a sand color for shore templates
-                baseColor = new Color(new Rgba32(220, 202, 142, 255));
-            }
-            else if (templateId >= 300 && templateId < 350) // Rock templates
-            {
-                // Use a gray color for rock templates
-                baseColor = new Color(new Rgba32(142, 128, 96, 255));
-            }
-            else
-            {
-                // Default placeholder color
-                baseColor = new Color(new Rgba32(200, 196, 164, 255));
-            }
-
+            // Common rendering approach with the main game engine
             image.Mutate(ctx =>
             {
                 // Fill with base color
                 ctx.Fill(baseColor, new Rectangle(0, 0, imageWidth, imageHeight));
 
-                // Add some texture details based on template type
-                if (templateId >= 100 && templateId < 120) // River templates
-                {
-                    // Add some river details
-                    ctx.Fill(new Color(new Rgba32(116, 140, 196, 230)),
-                        new Rectangle(imageWidth/4, imageHeight/4, imageWidth/2, imageHeight/2));
+                // Add texture details based on template category - similar to game's approach
+                AddCategorySpecificDetails(ctx, templateCategory, templateId, imageWidth, imageHeight);
 
-                    // Add some white ripples for effect
-                    ctx.Fill(new Color(new Rgba32(255, 255, 255, 40)),
-                        new Rectangle(imageWidth/4, imageHeight/3, imageWidth/2, imageHeight/6));
-                }
+                // Draw grid lines to represent cells - this matches TerrainTemplatePreviewWidget
+                DrawCellGrid(ctx, width, height);
 
-                // Draw a grid to represent cells
-                for (int x = 0; x < width; x++)
-                {
-                    for (int y = 0; y < height; y++)
-                    {
-                        ctx.Draw(new Color(new Rgba32(0, 0, 0, 30)), 1,
-                            new Rectangle(
-                                (int)(x * CellWidth * DefaultScale),
-                                (int)(y * CellHeight * DefaultScale),
-                                (int)(CellWidth * DefaultScale),
-                                (int)(CellHeight * DefaultScale)));
-                    }
-                }
-
-                // Add a label showing this is a placeholder
-                ctx.Fill(new Color(new Rgba32(255, 255, 255, 180)),
-                    new Rectangle(10, 10, imageWidth - 20, 20));
-
-                // Add template ID indication in the center
-                var centerRect = new Rectangle(
-                    imageWidth/4, imageHeight/3,
-                    imageWidth/2, imageHeight/4);
-
-                ctx.Fill(new Color(new Rgba32(0, 0, 0, 60)), centerRect);
-
-                // Note: In a real implementation, you would use DrawText to add template ID
-                // but we're using shapes for simplicity
+                // Add a subtle template ID indicator - useful for debugging but not intrusive
+                AddTemplateIdIndicator(ctx, templateId, imageWidth, imageHeight);
             });
 
             return image;
+        }
+
+        /// <summary>
+        /// Categorizes a template by its ID, following OpenRA's template organization
+        /// </summary>
+        private string GetTemplateCategory(ushort templateId)
+        {
+            // Use the same categorization logic as in the main game
+            if (templateId >= 100 && templateId < 120)
+                return "River";
+            else if (templateId >= 120 && templateId < 140)
+                return "Bridge";
+            else if (templateId >= 200 && templateId < 220)
+                return "Shore";
+            else if (templateId >= 300 && templateId < 350)
+                return "Rock";
+            else if (templateId >= 350 && templateId < 400)
+                return "Cliff";
+            else if (templateId >= 400 && templateId < 500)
+                return "Road";
+            else if (templateId >= 500 && templateId < 550)
+                return "Wall";
+            else
+                return "Generic";
+        }
+
+        /// <summary>
+        /// Gets the appropriate base color for a template category
+        /// </summary>
+        private Color GetCategoryColor(string category, ushort templateId)
+        {
+            // Map categories to appropriate colors, consistent with the game's palette
+            switch (category)
+            {
+                case "River":
+                    return new Color(new Rgba32(82, 126, 185, 220));
+                case "Shore":
+                    return new Color(new Rgba32(220, 202, 142, 255));
+                case "Rock":
+                    return new Color(new Rgba32(142, 128, 96, 255));
+                case "Cliff":
+                    return new Color(new Rgba32(150, 120, 90, 255));
+                case "Road":
+                    return new Color(new Rgba32(176, 166, 146, 255));
+                case "Bridge":
+                    return new Color(new Rgba32(130, 100, 70, 255));
+                case "Wall":
+                    return new Color(new Rgba32(120, 120, 120, 255));
+                default:
+                    return new Color(new Rgba32(200, 196, 164, 255));
+            }
+        }
+
+        /// <summary>
+        /// Adds category-specific visual details to the template image
+        /// </summary>
+        private void AddCategorySpecificDetails(IImageProcessingContext ctx, string category, ushort templateId, int imageWidth, int imageHeight)
+        {
+            switch (category)
+            {
+                case "River":
+                    // Add flowing water effect
+                    ctx.Fill(new Color(new Rgba32(116, 140, 196, 230)),
+                        new Rectangle(imageWidth/4, imageHeight/4, imageWidth/2, imageHeight/2));
+                    ctx.Fill(new Color(new Rgba32(255, 255, 255, 40)),
+                        new Rectangle(imageWidth/4, imageHeight/3, imageWidth/2, imageHeight/6));
+                    break;
+
+                case "Shore":
+                    // Add shore texture effect
+                    ctx.Fill(new Color(new Rgba32(200, 180, 120, 180)),
+                        new Rectangle(imageWidth/3, imageHeight/3, imageWidth/3, imageHeight/3));
+                    break;
+
+                case "Rock":
+                    // Add rock texture
+                    ctx.Fill(new Color(new Rgba32(60, 60, 60, 30)),
+                        new Rectangle(imageWidth/4, imageHeight/4, imageWidth/2, imageHeight/2));
+                    ctx.Fill(new Color(new Rgba32(80, 70, 60, 40)),
+                        new EllipsePolygon(imageWidth/2, imageHeight/2, imageWidth/4));
+                    break;
+
+                case "Road":
+                    // Add road markings
+                    ctx.Fill(new Color(new Rgba32(100, 100, 100, 180)),
+                        new Rectangle(imageWidth/3, 0, imageWidth/3, imageHeight));
+                    ctx.Fill(new Color(new Rgba32(255, 255, 255, 70)),
+                        new Rectangle(imageWidth/2 - 2, imageHeight/4, 4, imageHeight/2));
+                    break;
+
+                case "Bridge":
+                    // Add bridge structure details
+                    ctx.Fill(new Color(new Rgba32(90, 70, 50, 255)),
+                        new Rectangle(imageWidth/4, 0, imageWidth/2, imageHeight));
+                    ctx.Fill(new Color(new Rgba32(60, 50, 40, 255)),
+                        new Rectangle(imageWidth/3, 0, imageWidth/3, imageHeight));
+                    break;
+
+                case "Cliff":
+                    // Add cliff details
+                    ctx.Fill(new Color(new Rgba32(130, 100, 70, 200)),
+                        new RectangularPolygon(0, imageHeight/3, imageWidth, imageHeight*2/3));
+                    break;
+                    
+                case "Wall":
+                    // Add wall structure
+                    ctx.Fill(new Color(new Rgba32(140, 140, 140, 255)),
+                        new Rectangle(imageWidth/4, imageHeight/4, imageWidth/2, imageHeight/2));
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Draws a grid representing the template cells
+        /// </summary>
+        private void DrawCellGrid(IImageProcessingContext ctx, int width, int height)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    ctx.Draw(new Color(new Rgba32(0, 0, 0, 30)), 1,
+                        new Rectangle(
+                            (int)(x * CellWidth * DefaultScale),
+                            (int)(y * CellHeight * DefaultScale),
+                            (int)(CellWidth * DefaultScale),
+                            (int)(CellHeight * DefaultScale)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a subtle template ID indicator to the image
+        /// </summary>
+        private void AddTemplateIdIndicator(IImageProcessingContext ctx, ushort templateId, int imageWidth, int imageHeight)
+        {
+            // Add a small corner indicator showing template ID - subtle and non-intrusive
+            var cornerSize = Math.Min(imageWidth, imageHeight) / 8;
+            var cornerRect = new Rectangle(
+                imageWidth - cornerSize - 4, 
+                4, 
+                cornerSize, 
+                cornerSize);
+                
+            ctx.Fill(new Color(new Rgba32(0, 0, 0, 40)), cornerRect);
         }
 
         public Image<Rgba32> ConvertTemplateToImage(byte[] templateData, int width, int height)
@@ -238,9 +343,30 @@ namespace OpenRA.TemplateReader
 
         private bool IsTemplateCncFormat(byte[] data)
         {
-            // Very simple heuristic - C&C templates typically start with a specific header
-            // This is a simplification and might need refinement
-            return data.Length > 4 && data[0] == 0x00 && data[1] == 0x00;
+            // More robust format detection like the main game engine uses
+            // C&C templates use a different header structure than RA templates
+            
+            // Minimum template data is 4 bytes (header plus at least one tile)
+            if (data == null || data.Length < 4)
+                return false;
+                
+            // C&C templates often start with 0x00 0x00 header
+            if (data[0] == 0x00 && data[1] == 0x00)
+                return true;
+                
+            // Additional checks for C&C format templates
+            // Some C&C templates have width/height as the first two bytes
+            // followed by specific data patterns
+            if (data[0] > 0 && data[0] <= 64 && data[1] > 0 && data[1] <= 64)
+            {
+                // If the first two bytes are valid width/height and
+                // the next bytes follow C&C format patterns
+                if (data.Length > 4 && data[2] < 20 && data[3] < 30)
+                    return true;
+            }
+            
+            // Default to RA format if uncertain
+            return false;
         }
 
         private Image<Rgba32> ConvertRaTemplate(byte[] data, int width, int height)
