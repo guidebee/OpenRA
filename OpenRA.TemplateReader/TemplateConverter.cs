@@ -87,7 +87,7 @@ namespace OpenRA.TemplateReader
         private Image<Rgba32> ConvertRaTemplate(byte[] data, int width, int height)
         {
             var image = new Image<Rgba32>(width * CellWidth, height * CellHeight);
-            
+
             using (var ms = new MemoryStream(data))
             using (var br = new BinaryReader(ms))
             {
@@ -130,21 +130,21 @@ namespace OpenRA.TemplateReader
                     }
                 }
             }
-            
+
             return image;
         }
 
         private Image<Rgba32> ConvertCncTemplate(byte[] data, int width, int height)
         {
             var image = new Image<Rgba32>(width * CellWidth, height * CellHeight);
-            
+
             // Similar to RA template handling but with C&C specific format
             // This is a simplified implementation
-            
-            image.Mutate(ctx => 
+
+            image.Mutate(ctx =>
             {
                 ctx.Fill(Color.Transparent);
-                
+
                 // Draw a grid to show the template structure
                 for (int y = 0; y < height; y++)
                 {
@@ -153,18 +153,18 @@ namespace OpenRA.TemplateReader
                         // Use the terrain type from the data if available
                         byte terrainType = 0;
                         byte tileHeight = 0;
-                        
+
                         if (data.Length > 2 + (y * width + x) * 2 + 1)
                         {
                             terrainType = data[2 + (y * width + x) * 2];
                             tileHeight = data[2 + (y * width + x) * 2 + 1];
                         }
-                        
+
                         DrawTile(image, x * CellWidth, y * CellHeight, CellWidth, CellHeight, terrainType, tileHeight, 0);
                     }
                 }
             });
-            
+
             return image;
         }
 

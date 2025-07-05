@@ -25,7 +25,7 @@ namespace OpenRA.TemplateReader
             var modDataLoader = new ModDataLoader();
             var modData = modDataLoader.CreateFolderMods(new[] { gamePath });
             fileSystem = modData.ModFiles;
-            
+
             // Initialize MIX file loader
             mixLoader = new MixLoader();
             templateConverter = new TemplateConverter();
@@ -63,13 +63,39 @@ namespace OpenRA.TemplateReader
                 }
 
                 // If not found in filesystem, try to extract from MIX files
-                // Parse template name to determine the tileset
-                string tileset = GetTilesetFromTemplateName(imageName);
-                if (!string.IsNullOrEmpty(tileset))
+                // Try different tilesets in this order of preference:
+                string[] tilesetPreference = {
+                    GetTilesetFromTemplateName(imageName), // First try the tileset determined from the filename
+                    "temperat",  // Default tileset
+                    "snow",      // Other tilesets to try
+                    "desert",
+                    "interior",
+                    "general",   // General mix files
+                    "local",     // Other mix files that might contain templates
+                    "conquer",
+                    "hires"
+                };
+
+                foreach (var tileset in tilesetPreference)
                 {
+                    if (string.IsNullOrEmpty(tileset)) continue;
+
                     var templateData = mixLoader.GetTemplateFromMix(tileset, imageName);
                     if (templateData != null && templateData.Length > 0)
                     {
+                        // Save the raw template data first
+                        try
+                        {
+                            var rawFilePath = Path.Combine(outputDir, imageName);
+                            Directory.CreateDirectory(Path.GetDirectoryName(rawFilePath));
+                            File.WriteAllBytes(rawFilePath, templateData);
+                            Console.WriteLine($"Exported raw template data: {imageName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Warning: Failed to export raw template data {imageName}: {ex.Message}");
+                        }
+
                         // Convert template data to image
                         using var image = templateConverter.ConvertTemplateToImage(templateData);
                         if (image != null)
@@ -77,7 +103,7 @@ namespace OpenRA.TemplateReader
                             var destFilePath = Path.Combine(outputDir, Path.ChangeExtension(imageName, ".png"));
                             Directory.CreateDirectory(Path.GetDirectoryName(destFilePath));
                             image.Save(destFilePath);
-                            Console.WriteLine($"Exported template image from MIX: {imageName}");
+                            Console.WriteLine($"Exported template image from {tileset} MIX: {imageName}");
                             return true;
                         }
                     }
@@ -86,13 +112,14 @@ namespace OpenRA.TemplateReader
                 Console.WriteLine($"Warning: Image not found: {imageName}");
                 Console.WriteLine("Note: Original template image files (like .tem files) require original game assets.");
                 Console.WriteLine("They are typically located in the game's installation directory or a content package.");
+                Console.WriteLine("Failed to export original image: " + imageName);
+                return false;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error exporting image: {ex.Message}");
+                return false;
             }
-
-            return false;
         }
 
         public Image<Rgba32> LoadTemplateImage(string imageName)
@@ -130,9 +157,23 @@ namespace OpenRA.TemplateReader
                 }
 
                 // If not found in filesystem or couldn't load as a standard image, try MIX files
-                string tileset = GetTilesetFromTemplateName(imageName);
-                if (!string.IsNullOrEmpty(tileset))
+                // Try different tilesets in this order of preference:
+                string[] tilesetPreference = {
+                    GetTilesetFromTemplateName(imageName), // First try the tileset determined from the filename
+                    "temperat",  // Default tileset
+                    "snow",      // Other tilesets to try
+                    "desert",
+                    "interior",
+                    "general",   // General mix files
+                    "local",     // Other mix files that might contain templates
+                    "conquer",
+                    "hires"
+                };
+
+                foreach (var tileset in tilesetPreference)
                 {
+                    if (string.IsNullOrEmpty(tileset)) continue;
+
                     var templateData = mixLoader.GetTemplateFromMix(tileset, imageName);
                     if (templateData != null && templateData.Length > 0)
                     {
@@ -140,7 +181,7 @@ namespace OpenRA.TemplateReader
                         var image = templateConverter.ConvertTemplateToImage(templateData);
                         if (image != null)
                         {
-                            Console.WriteLine($"Loaded template image from MIX: {imageName}");
+                            Console.WriteLine($"Loaded template image from {tileset} MIX: {imageName}");
                             return image;
                         }
                     }
@@ -181,41 +222,84 @@ namespace OpenRA.TemplateReader
 
         private string GetTilesetFromTemplateName(string templateName)
         {
-            // Template filenames typically follow a pattern: <tileset>.<template_name>.tem
-            // Example: temperat.t01.tem - "temperat" is the tileset
-            
-            // Special cases for specific tilesets
-            if (templateName.StartsWith("d", StringComparison.OrdinalIgnoreCase) && 
-                char.IsDigit(templateName[1]))
-                return "desert";
-                
-            if (templateName.StartsWith("s", StringComparison.OrdinalIgnoreCase) && 
-                char.IsDigit(templateName[1]))
-                return "snow";
-                
-            if (templateName.StartsWith("t", StringComparison.OrdinalIgnoreCase) && 
-                char.IsDigit(templateName[1]))
+            if (string.IsNullOrEmpty(templateName))
+                return "temperat"; // Default to temperate
+
+            // Some templates have a specific naming pattern that indicates the tileset
+            // Template names like sh14.tem = shore 14 = temperate
+            // Template names like "cliffsl1.tem" = cliff slopes = temperate
+
+            // For template 188 in temperat, the file could be named in various ways
+            // e.g., t188.tem, temperat.t188.tem, t188, etc.
+
+            // First check for known prefixes
+            templateName = templateName.ToLowerInvariant();
+
+            // Check for explicit prefixes
+            if (templateName.StartsWith("temperat") || templateName.StartsWith("temp"))
                 return "temperat";
-                
-            if (templateName.StartsWith("i", StringComparison.OrdinalIgnoreCase) && 
-                char.IsDigit(templateName[1]))
+
+            if (templateName.StartsWith("desert") || templateName.StartsWith("des"))
+                return "desert";
+
+            if (templateName.StartsWith("snow") || templateName.StartsWith("winter"))
+                return "snow";
+
+            if (templateName.StartsWith("interior") || templateName.StartsWith("int"))
                 return "interior";
-                
-            // Extract from filename if it matches the pattern
+
+            // Check for single letter prefixes with digits
+            if (templateName.Length >= 2)
+            {
+                char prefix = templateName[0];
+                bool hasDigit = templateName.Length > 1 && char.IsDigit(templateName[1]);
+
+                if (hasDigit)
+                {
+                    switch (prefix)
+                    {
+                        case 't': return "temperat";
+                        case 'd': return "desert";
+                        case 's': return "snow";
+                        case 'i': return "interior";
+                    }
+                }
+            }
+
+            // Check for special template types
+            if (templateName.Contains("cliff") ||
+                templateName.Contains("shore") ||
+                templateName.Contains("sh") ||
+                templateName.Contains("bridge") ||
+                templateName.Contains("road"))
+                return "temperat";
+
+            if (templateName.Contains("ice") ||
+                templateName.Contains("sno"))
+                return "snow";
+
+            if (templateName.Contains("des"))
+                return "desert";
+
+            // Extract from filename if it matches the pattern x.y.z
             var parts = templateName.Split('.');
             if (parts.Length >= 2)
             {
                 var potentialTileset = parts[0].ToLowerInvariant();
-                
+
                 // Known tilesets in Red Alert
                 string[] knownTilesets = { "desert", "interior", "snow", "temperat" };
-                
+
                 if (knownTilesets.Contains(potentialTileset))
                 {
                     return potentialTileset;
                 }
             }
-            
+
+            // For template id numbers, default to temperat
+            if (templateName.All(c => char.IsDigit(c)))
+                return "temperat";
+
             // If we can't determine, default to "temperat" which is the most common
             return "temperat";
         }

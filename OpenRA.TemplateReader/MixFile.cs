@@ -17,34 +17,78 @@ namespace OpenRA.TemplateReader
         {
             this.stream = stream;
             this.isOwner = isOwner;
-            
+
             try
             {
                 // Read the MIX file header
                 using (var reader = new BinaryReader(stream, System.Text.Encoding.ASCII, true))
                 {
-                    // Read the number of files
-                    stream.Position = 4; // Skip first 4 bytes (flags)
-                    int numFiles = reader.ReadUInt16();
-                    int headerSize = (int)reader.ReadUInt32();
-                    
-                    // Skip to the index section
-                    stream.Position = headerSize;
-                    
-                    // Read file entries
-                    for (int i = 0; i < numFiles; i++)
+                    // Check if this is a valid MIX file with enough data
+                    if (stream.Length < 10)
                     {
-                        uint id = reader.ReadUInt32();
-                        uint offset = reader.ReadUInt32();
-                        uint length = reader.ReadUInt32();
-                        
-                        // Convert hash ID to filename (approximate, for common templates)
-                        string filename = HashToFilename(id);
-                        
-                        if (!string.IsNullOrEmpty(filename))
+                        Console.WriteLine("Invalid MIX file: File is too small");
+                        return;
+                    }
+
+                    // Store the original position
+                    long originalPosition = stream.Position;
+
+                    // Check for various MIX file formats
+                    try
+                    {
+                        // Read the first 4 bytes to determine format
+                        stream.Position = 0;
+                        uint fileHeader = reader.ReadUInt32();
+
+                        // Standard Red Alert MIX format
+                        // Read the number of files
+                        stream.Position = 4;
+                        ushort numFiles = reader.ReadUInt16();
+
+                        // Make sure we don't process too many files to prevent errors
+                        numFiles = (ushort)Math.Min((int)numFiles, 10000); // Reasonable upper limit
+
+                        uint headerSize = reader.ReadUInt32();
+
+                        // Safety check for reasonable header size
+                        if (headerSize > stream.Length || headerSize < 10)
                         {
-                            index[filename] = new IndexEntry { Offset = offset, Length = length };
+                            Console.WriteLine($"Warning: Invalid header size {headerSize}, using default");
+                            headerSize = 10; // Use a reasonable default
                         }
+
+                        // Skip to the index section
+                        stream.Position = headerSize;
+
+                        // Read file entries
+                        for (int i = 0; i < numFiles; i++)
+                        {
+                            // Check if we've reached the end of the file
+                            if (stream.Position + 12 > stream.Length)
+                                break;
+
+                            uint id = reader.ReadUInt32();
+                            uint offset = reader.ReadUInt32();
+                            uint length = reader.ReadUInt32();
+
+                            // Basic validation
+                            if (offset > stream.Length || length > stream.Length || offset + length > stream.Length)
+                                continue;
+
+                            // Convert hash ID to filename (approximate, for common templates)
+                            string filename = HashToFilename(id);
+
+                            if (!string.IsNullOrEmpty(filename))
+                            {
+                                index[filename] = new IndexEntry { Offset = offset, Length = length };
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning during MIX parsing: {ex.Message}");
+                        // Reset position and keep going
+                        stream.Position = originalPosition;
                     }
                 }
             }
@@ -68,13 +112,29 @@ namespace OpenRA.TemplateReader
         {
             if (!index.TryGetValue(filename, out var entry))
                 return null;
-            
+
             lock (stream)
             {
-                stream.Position = entry.Offset;
-                var data = new byte[entry.Length];
-                stream.Read(data, 0, (int)entry.Length);
-                return data;
+                try
+                {
+                    // Validate that the offset and length are within the stream
+                    if (entry.Offset >= stream.Length || entry.Length > stream.Length ||
+                        entry.Offset + entry.Length > stream.Length)
+                    {
+                        Console.WriteLine($"Error: Invalid file entry for {filename}");
+                        return null;
+                    }
+
+                    stream.Position = entry.Offset;
+                    var data = new byte[entry.Length];
+                    stream.Read(data, 0, (int)entry.Length);
+                    return data;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error extracting {filename}: {ex.Message}");
+                    return null;
+                }
             }
         }
 
@@ -111,20 +171,20 @@ namespace OpenRA.TemplateReader
                 { 0x54303137, "t017.tem" },     // T017
                 { 0x54303138, "t018.tem" },     // T018
                 { 0x54303231, "t021.tem" },     // T021
-                
+
                 // Snow templates
                 { 0x534E4F57, "snow.sno" },     // SNOW
                 { 0x53303030, "s000.sno" },     // S000
                 { 0x53303031, "s001.sno" },     // S001
                 { 0x53303032, "s002.sno" },     // S002
                 { 0x53303033, "s003.sno" },     // S003
-                
+
                 // Desert templates
                 { 0x44455345, "desert.des" },   // DESE
                 { 0x44303030, "d000.des" },     // D000
                 { 0x44303031, "d001.des" },     // D001
                 { 0x44303032, "d002.des" },     // D002
-                
+
                 // Interior templates
                 { 0x494E5445, "interior.int" }, // INTE
                 { 0x49303030, "i000.int" },     // I000
@@ -143,7 +203,7 @@ namespace OpenRA.TemplateReader
                 char d1 = (char)bytes[1];
                 char d2 = (char)bytes[2];
                 char d3 = (char)bytes[3];
-                
+
                 // Common template naming pattern: tNNN.tem, sNNN.sno, etc.
                 if ((t == 't' || t == 'T') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
                 {
@@ -162,7 +222,7 @@ namespace OpenRA.TemplateReader
                     return $"{t}{d1}{d2}{d3}.int";
                 }
             }
-            
+
             return null;
         }
 

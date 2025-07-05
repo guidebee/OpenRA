@@ -25,18 +25,54 @@ namespace OpenRA.TemplateReader
 
             // Look for RA Content directory
             string raContentDir = Path.Combine(supportDir, "Content", "ra", "v2");
-            if (!Directory.Exists(raContentDir))
+            if (Directory.Exists(raContentDir))
+            {
+                // Load all .mix files relevant to tilesets from RA
+                LoadMixFile(raContentDir, "temperat.mix", "temperat");
+                LoadMixFile(raContentDir, "winter.mix", "snow");
+                LoadMixFile(raContentDir, "snow.mix", "snow");
+                LoadMixFile(raContentDir, "interior.mix", "interior");
+                LoadMixFile(raContentDir, "desert.mix", "desert");
+
+                // Try to load additional mix files that might contain templates
+                LoadMixFile(raContentDir, "general.mix", "general");
+                LoadMixFile(raContentDir, "local.mix", "local");
+                LoadMixFile(raContentDir, "conquer.mix", "conquer");
+                LoadMixFile(raContentDir, "hires.mix", "hires");
+            }
+            else
             {
                 Console.WriteLine($"Warning: RA content directory not found at {raContentDir}");
-                return;
             }
 
-            // Load all .mix files relevant to tilesets
-            LoadMixFile(raContentDir, "temperat.mix", "temperat");
-            LoadMixFile(raContentDir, "winter.mix", "snow");
-            LoadMixFile(raContentDir, "snow.mix", "snow");
-            LoadMixFile(raContentDir, "interior.mix", "interior");
-            LoadMixFile(raContentDir, Path.Combine("cnc", "desert.mix"), "desert");
+            // Look for CNC Content directory
+            string cncContentDir = Path.Combine(supportDir, "Content", "cnc", "v2");
+            if (Directory.Exists(cncContentDir))
+            {
+                // Load CNC tileset mix files
+                LoadMixFile(cncContentDir, "desert.mix", "desert");
+                LoadMixFile(cncContentDir, "temperat.mix", "temperat");
+                LoadMixFile(cncContentDir, "winter.mix", "snow");
+                LoadMixFile(cncContentDir, "snow.mix", "snow");
+                LoadMixFile(cncContentDir, "interior.mix", "interior");
+            }
+
+            // Look for RA2 Content directory (might contain some compatible files)
+            string ra2ContentDir = Path.Combine(supportDir, "Content", "ra2");
+            if (Directory.Exists(ra2ContentDir))
+            {
+                // Load RA2 tileset mix files
+                LoadMixFile(ra2ContentDir, "temperat.mix", "temperat");
+                LoadMixFile(ra2ContentDir, "snow.mix", "snow");
+                LoadMixFile(ra2ContentDir, "urban.mix", "urban");
+            }
+
+            // Also check for a cnc subdirectory in the RA directory
+            string raCncDir = Path.Combine(raContentDir, "cnc");
+            if (Directory.Exists(raCncDir))
+            {
+                LoadMixFile(raCncDir, "desert.mix", "desert");
+            }
         }
 
         public string GetSupportDir()
@@ -100,7 +136,7 @@ namespace OpenRA.TemplateReader
             // Template files typically have extensions matching the tileset
             // For example: temperat.t01.tem, desert.t01.des, snow.t01.sno, etc.
             string extension = GetTemplateExtension(tileset);
-            
+
             // Try various naming patterns
             string[] possibleNames = new[]
             {
@@ -149,6 +185,25 @@ namespace OpenRA.TemplateReader
                     return;
                 }
 
+                // Additional validation for the desert.mix file
+                if (mixFileName.Contains("desert"))
+                {
+                    try
+                    {
+                        // Check file size - skip if too small
+                        var fileInfo = new FileInfo(mixFilePath);
+                        if (fileInfo.Length < 100)
+                        {
+                            Console.WriteLine($"Warning: Mix file {mixFileName} is too small, skipping");
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        // If we can't check the file, continue anyway
+                    }
+                }
+
                 // Load the MIX file
                 using (var stream = File.OpenRead(mixFilePath))
                 {
@@ -157,7 +212,7 @@ namespace OpenRA.TemplateReader
                         var mixFile = new MixFile(stream);
                         if (!tilesetMixFiles.ContainsKey(tileset))
                             tilesetMixFiles[tileset] = new List<MixFile>();
-                        
+
                         tilesetMixFiles[tileset].Add(mixFile);
                         Console.WriteLine($"Loaded MIX file: {mixFilePath}");
                     }

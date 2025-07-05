@@ -285,7 +285,7 @@ namespace OpenRA.TemplateReader
                         {
                             ctx.Fill(SixLabors.ImageSharp.Color.LightGray);
                             ctx.Draw(SixLabors.ImageSharp.Color.Black, 2, new SixLabors.ImageSharp.Rectangle(0, 0, 200, 100));
-                            
+
                             // Add a small note about missing original image - without disrupting the clean visual
                             try
                             {

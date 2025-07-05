@@ -495,7 +495,7 @@ namespace OpenRA.TemplateReader
         {
             // Return a terrain type name based on the tileset and terrain type index
             string tileset = tilesetName.ToUpperInvariant();
-            
+
             switch (tileset)
             {
                 case "DESERT":
