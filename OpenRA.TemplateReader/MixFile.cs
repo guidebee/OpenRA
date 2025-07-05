@@ -4,151 +4,153 @@ using System.IO;
 
 namespace OpenRA.TemplateReader
 {
-    /// <summary>
-    /// A simple implementation of MIX file reading for template extraction.
-    /// </summary>
-    public class MixFile
-    {
-        private readonly Dictionary<string, IndexEntry> index = new Dictionary<string, IndexEntry>(StringComparer.OrdinalIgnoreCase);
-        private readonly Stream stream;
-        private readonly bool isOwner;
+	/// <summary>
+	/// A simple implementation of MIX file reading for template extraction.
+	/// </summary>
+	public class MixFile
+	{
+		readonly Dictionary<string, IndexEntry> index = new(StringComparer.OrdinalIgnoreCase);
+		readonly Stream stream;
+		readonly bool isOwner;
 
-        public MixFile(Stream stream, bool isOwner = true)
-        {
-            this.stream = stream;
-            this.isOwner = isOwner;
+		public MixFile(Stream stream, bool isOwner = true)
+		{
+			this.stream = stream;
+			this.isOwner = isOwner;
 
-            try
-            {
-                // Read the MIX file header
-                using (var reader = new BinaryReader(stream, System.Text.Encoding.ASCII, true))
-                {
-                    // Check if this is a valid MIX file with enough data
-                    if (stream.Length < 10)
-                    {
-                        Console.WriteLine("Invalid MIX file: File is too small");
-                        return;
-                    }
+			try
+			{
+				// Read the MIX file header
+				using (var reader = new BinaryReader(stream, System.Text.Encoding.ASCII, true))
+				{
+					// Check if this is a valid MIX file with enough data
+					if (stream.Length < 10)
+					{
+						Console.WriteLine("Invalid MIX file: File is too small");
+						return;
+					}
 
-                    // Store the original position
-                    long originalPosition = stream.Position;
+					// Store the original position
+					var originalPosition = stream.Position;
 
-                    // Check for various MIX file formats
-                    try
-                    {
-                        // Read the first 4 bytes to determine format
-                        stream.Position = 0;
-                        uint fileHeader = reader.ReadUInt32();
+					// Check for various MIX file formats
+					try
+					{
+						// Read the first 4 bytes to determine format
+						stream.Position = 0;
+						var fileHeader = reader.ReadUInt32();
 
-                        // Standard Red Alert MIX format
-                        // Read the number of files
-                        stream.Position = 4;
-                        ushort numFiles = reader.ReadUInt16();
+						// Standard Red Alert MIX format
+						// Read the number of files
+						stream.Position = 4;
+						var numFiles = reader.ReadUInt16();
 
-                        // Make sure we don't process too many files to prevent errors
-                        numFiles = (ushort)Math.Min((int)numFiles, 10000); // Reasonable upper limit
+						// Make sure we don't process too many files to prevent errors
+						numFiles = (ushort)Math.Min((int)numFiles, 10000); // Reasonable upper limit
 
-                        uint headerSize = reader.ReadUInt32();
+						var headerSize = reader.ReadUInt32();
 
-                        // Safety check for reasonable header size
-                        if (headerSize > stream.Length || headerSize < 10)
-                        {
-                            Console.WriteLine($"Warning: Invalid header size {headerSize}, using default");
-                            headerSize = 10; // Use a reasonable default
-                        }
+						// Safety check for reasonable header size
+						if (headerSize > stream.Length || headerSize < 10)
+						{
+							Console.WriteLine($"Warning: Invalid header size {headerSize}, using default");
+							headerSize = 10; // Use a reasonable default
+						}
 
-                        // Skip to the index section
-                        stream.Position = headerSize;
+						// Skip to the index section
+						stream.Position = headerSize;
 
-                        // Read file entries
-                        for (int i = 0; i < numFiles; i++)
-                        {
-                            // Check if we've reached the end of the file
-                            if (stream.Position + 12 > stream.Length)
-                                break;
+						// Read file entries
+						for (var i = 0; i < numFiles; i++)
+						{
+							// Check if we've reached the end of the file
+							if (stream.Position + 12 > stream.Length)
+								break;
 
-                            uint id = reader.ReadUInt32();
-                            uint offset = reader.ReadUInt32();
-                            uint length = reader.ReadUInt32();
+							var id = reader.ReadUInt32();
+							var offset = reader.ReadUInt32();
+							var length = reader.ReadUInt32();
 
-                            // Basic validation
-                            if (offset > stream.Length || length > stream.Length || offset + length > stream.Length)
-                                continue;
+							// Basic validation
+							if (offset > stream.Length || length > stream.Length || offset + length > stream.Length)
+								continue;
 
-                            // Convert hash ID to filename (approximate, for common templates)
-                            string filename = HashToFilename(id);
+							// Convert hash ID to filename (approximate, for common templates)
+							var filename = HashToFilename(id);
 
-                            if (!string.IsNullOrEmpty(filename))
-                            {
-                                index[filename] = new IndexEntry { Offset = offset, Length = length };
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Warning during MIX parsing: {ex.Message}");
-                        // Reset position and keep going
-                        stream.Position = originalPosition;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error reading MIX file: {ex.Message}");
-                if (isOwner)
-                {
-                    stream.Dispose();
-                }
-                throw;
-            }
-        }
+							if (!string.IsNullOrEmpty(filename))
+							{
+								index[filename] = new IndexEntry { Offset = offset, Length = length };
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Warning during MIX parsing: {ex.Message}");
 
-        public bool Contains(string filename)
-        {
-            return index.ContainsKey(filename);
-        }
+						// Reset position and keep going
+						stream.Position = originalPosition;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error reading MIX file: {ex.Message}");
+				if (isOwner)
+				{
+					stream.Dispose();
+				}
 
-        public byte[] Extract(string filename)
-        {
-            if (!index.TryGetValue(filename, out var entry))
-                return null;
+				throw;
+			}
+		}
 
-            lock (stream)
-            {
-                try
-                {
-                    // Validate that the offset and length are within the stream
-                    if (entry.Offset >= stream.Length || entry.Length > stream.Length ||
-                        entry.Offset + entry.Length > stream.Length)
-                    {
-                        Console.WriteLine($"Error: Invalid file entry for {filename}");
-                        return null;
-                    }
+		public bool Contains(string filename)
+		{
+			return index.ContainsKey(filename);
+		}
 
-                    stream.Position = entry.Offset;
-                    var data = new byte[entry.Length];
-                    stream.Read(data, 0, (int)entry.Length);
-                    return data;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error extracting {filename}: {ex.Message}");
-                    return null;
-                }
-            }
-        }
+		public byte[] Extract(string filename)
+		{
+			if (!index.TryGetValue(filename, out var entry))
+				return null;
 
-        public void Dispose()
-        {
-            if (isOwner)
-                stream.Dispose();
-        }
+			lock (stream)
+			{
+				try
+				{
+					// Validate that the offset and length are within the stream
+					if (entry.Offset >= stream.Length || entry.Length > stream.Length ||
+						entry.Offset + entry.Length > stream.Length)
+					{
+						Console.WriteLine($"Error: Invalid file entry for {filename}");
+						return null;
+					}
 
-        private string HashToFilename(uint hash)
-        {
-            // Some known template files in Red Alert
-            var knownHashes = new Dictionary<uint, string>()
-            {
+					stream.Position = entry.Offset;
+					var data = new byte[entry.Length];
+					stream.Read(data, 0, (int)entry.Length);
+					return data;
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error extracting {filename}: {ex.Message}");
+					return null;
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			if (isOwner)
+				stream.Dispose();
+		}
+
+		static string HashToFilename(uint hash)
+		{
+			// Some known template files in Red Alert
+			var knownHashes = new Dictionary<uint, string>()
+			{
                 // Temperate templates
                 { 0x54454D50, "temperat.tem" }, // TEMP
                 { 0x54303030, "t000.tem" },     // T000
@@ -221,47 +223,50 @@ namespace OpenRA.TemplateReader
                 { 0x494E5445, "interior.int" }, // INTE
                 { 0x49303030, "i000.int" },     // I000
                 { 0x49303031, "i001.int" },     // I001
-            };
+			};
 
-            if (knownHashes.TryGetValue(hash, out var filename))
-                return filename;
+			if (knownHashes.TryGetValue(hash, out var filename))
+				return filename;
 
-            // Try to convert the hash to a template name
-            // This is a simplified approach, not handling all cases
-            byte[] bytes = BitConverter.GetBytes(hash);
-            if (bytes.Length >= 4)
-            {
-                char t = (char)bytes[0];
-                char d1 = (char)bytes[1];
-                char d2 = (char)bytes[2];
-                char d3 = (char)bytes[3];
+			// Try to convert the hash to a template name
+			// This is a simplified approach, not handling all cases
+			var bytes = BitConverter.GetBytes(hash);
+			if (bytes.Length >= 4)
+			{
+				var t = (char)bytes[0];
+				var d1 = (char)bytes[1];
+				var d2 = (char)bytes[2];
+				var d3 = (char)bytes[3];
 
-                // Common template naming pattern: tNNN.tem, sNNN.sno, etc.
-                if ((t == 't' || t == 'T') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
-                {
-                    return $"{t}{d1}{d2}{d3}.tem";
-                }
-                if ((t == 's' || t == 'S') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
-                {
-                    return $"{t}{d1}{d2}{d3}.sno";
-                }
-                if ((t == 'd' || t == 'D') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
-                {
-                    return $"{t}{d1}{d2}{d3}.des";
-                }
-                if ((t == 'i' || t == 'I') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
-                {
-                    return $"{t}{d1}{d2}{d3}.int";
-                }
-            }
+				// Common template naming pattern: tNNN.tem, sNNN.sno, etc.
+				if ((t == 't' || t == 'T') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
+				{
+					return $"{t}{d1}{d2}{d3}.tem";
+				}
 
-            return null;
-        }
+				if ((t == 's' || t == 'S') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
+				{
+					return $"{t}{d1}{d2}{d3}.sno";
+				}
 
-        private class IndexEntry
-        {
-            public uint Offset;
-            public uint Length;
-        }
-    }
+				if ((t == 'd' || t == 'D') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
+				{
+					return $"{t}{d1}{d2}{d3}.des";
+				}
+
+				if ((t == 'i' || t == 'I') && char.IsDigit(d1) && char.IsDigit(d2) && char.IsDigit(d3))
+				{
+					return $"{t}{d1}{d2}{d3}.int";
+				}
+			}
+
+			return null;
+		}
+
+		class IndexEntry
+		{
+			public uint Offset;
+			public uint Length;
+		}
+	}
 }
