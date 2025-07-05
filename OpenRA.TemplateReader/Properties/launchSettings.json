@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OpenRA.TemplateReader": {
+      "commandName": "Project",
+      "commandLineArgs": "--tileset=temperat --mod=ra --game-path=C:\\Workspace\\OpenRA\\"
+    }
+  }
+}
