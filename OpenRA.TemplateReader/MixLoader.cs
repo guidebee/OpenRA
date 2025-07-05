@@ -131,10 +131,50 @@ namespace OpenRA.TemplateReader
             return result;
         }        public byte[] GetTemplateFromMix(string tileset, string templateName)
         {
+            // Try using the standard template finding logic first
+            byte[] result = GetTemplateFromMixInternal(tileset, templateName);
+            if (result != null && result.Length > 0)
+                return result;
+
+            // If not found in the primary tileset, check if this is a special template
+            // that might be found in other tilesets
+            if (templateName.StartsWith("rv", StringComparison.OrdinalIgnoreCase) ||
+                templateName.StartsWith("sh", StringComparison.OrdinalIgnoreCase) ||
+                templateName.Contains(".tem"))
+            {
+                Console.WriteLine($"Template not found in {tileset}, checking alternate tilesets for {templateName}");
+
+                // Try other tilesets
+                foreach (var alternateTileset in new[] { "temperat", "snow", "winter", "interior", "desert" })
+                {
+                    if (alternateTileset != tileset)
+                    {
+                        result = GetTemplateFromMixInternal(alternateTileset, templateName);
+                        if (result != null && result.Length > 0)
+                            return result;
+                    }
+                }
+
+                // Try general mix files
+                foreach (var generalTileset in new[] { "general", "local", "conquer" })
+                {
+                    result = GetTemplateFromMixInternal(generalTileset, templateName);
+                    if (result != null && result.Length > 0)
+                        return result;
+                }
+            }
+
+            // If we couldn't find the template, log and return null
+            Console.WriteLine($"Template {templateName} not found in any tileset MIX files");
+            return null;
+        }
+
+        private byte[] GetTemplateFromMixInternal(string tileset, string templateName)
+        {
             // Template files typically have extensions matching the tileset
             // For example: temperat.t01.tem, desert.t01.des, snow.t01.sno, etc.
             string extension = GetTemplateExtension(tileset);
-            
+
             // Try various naming patterns - expanded to cover more possibilities
             var possibleNames = new List<string>
             {
@@ -144,23 +184,23 @@ namespace OpenRA.TemplateReader
                 $"{tileset}.{templateName}{extension}",      // Full pattern with tileset prefix and extension
                 $"{templateName.Replace(extension, "")}{extension}" // Fix double extension
             };
-            
+
             // Add more template name patterns for special types
-            
+
             // For template IDs like 115, try different prefix styles
             if (int.TryParse(templateName.Replace(".tem", "").Replace(".sno", "").Replace(".des", "").Replace(".int", ""), out int templateId))
             {
                 // Add standard formats t[id], d[id], s[id], etc.
                 possibleNames.Add($"t{templateId:D2}{extension}");
                 possibleNames.Add($"t{templateId:D3}{extension}");
-                
+
                 // Special cases for river templates (rv prefix)
                 if (templateId >= 0 && templateId <= 20)
                 {
                     possibleNames.Add($"rv{templateId:D2}{extension}");
                     possibleNames.Add($"rv{templateId:D2}");
                 }
-                
+
                 // Special cases for road templates (d prefix)
                 if (templateId >= 0 && templateId <= 50)
                 {
@@ -168,7 +208,7 @@ namespace OpenRA.TemplateReader
                     possibleNames.Add($"d{templateId:D2}");
                 }
             }
-            
+
             // For river templates like rv04.tem
             if (templateName.StartsWith("rv", StringComparison.OrdinalIgnoreCase))
             {
@@ -192,7 +232,7 @@ namespace OpenRA.TemplateReader
             }
 
             // Special handling for specific templates
-            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) || 
+            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) ||
                 (templateId == 115 && tileset.Equals("temperat", StringComparison.OrdinalIgnoreCase)))
             {
                 // Try some alternative tilesets
@@ -209,7 +249,7 @@ namespace OpenRA.TemplateReader
                         }
                     }
                 }
-                
+
                 // Try general mix files with different file naming
                 foreach (var generalTileset in new[] { "general", "local", "conquer" })
                 {
@@ -236,7 +276,7 @@ namespace OpenRA.TemplateReader
             }
 
             // Special handling for specific templates
-            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) || 
+            if (templateName.Equals("rv04.tem", StringComparison.OrdinalIgnoreCase) ||
                 (templateId == 115 && tileset.Equals("temperat", StringComparison.OrdinalIgnoreCase)))
             {
                 // Try some alternative tilesets
@@ -253,7 +293,7 @@ namespace OpenRA.TemplateReader
                         }
                     }
                 }
-                
+
                 // Try general mix files with different file naming
                 foreach (var generalTileset in new[] { "general", "local", "conquer" })
                 {

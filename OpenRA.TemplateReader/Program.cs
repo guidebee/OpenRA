@@ -22,7 +22,10 @@ namespace OpenRA.TemplateReader
             // Set up command-line arguments
             var rootCommand = new RootCommand("OpenRA Template Reader - Extracts and exports single template data from game files");
 
-            // Add options
+            // Create a command for exporting templates
+            var exportCommand = new Command("export", "Export a specific template");
+            
+            // Add options for export command
             var outputOption = new Option<string>(
                 "--output",
                 () => "template-export",
@@ -40,19 +43,49 @@ namespace OpenRA.TemplateReader
                 "--template-id",
                 "The template ID to export (e.g., 401)");
 
-            // Add options to command
+            // Add options to export command
+            exportCommand.AddOption(outputOption);
+            exportCommand.AddOption(gamePathOption);
+            exportCommand.AddOption(tilesetOption);
+            exportCommand.AddOption(templateIdOption);
+
+            // Make tileset and templateId required for export command
+            tilesetOption.IsRequired = true;
+            templateIdOption.IsRequired = true;
+
+            // Set handler for export command
+            exportCommand.SetHandler((output, gamePath, tileset, templateId) =>
+            {
+                ExportTemplate(output, gamePath, tileset, templateId);
+            }, outputOption, gamePathOption, tilesetOption, templateIdOption);
+            
+            // Create a command for checking assets
+            var checkAssetsCommand = new Command("check-assets", "Check if essential original game assets are available");
+            
+            // Add game path option to check-assets command
+            checkAssetsCommand.AddOption(gamePathOption);
+            
+            // Set handler for check-assets command
+            checkAssetsCommand.SetHandler((gamePath) =>
+            {
+                CheckAssets(gamePath);
+            }, gamePathOption);
+            
+            // Add both commands to the root command
+            rootCommand.AddCommand(exportCommand);
+            rootCommand.AddCommand(checkAssetsCommand);
+            
+            // For backward compatibility, also handle the case when no command is specified
+            // but tileset and templateId are provided
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(gamePathOption);
             rootCommand.AddOption(tilesetOption);
             rootCommand.AddOption(templateIdOption);
-
-            // Make tileset and templateId required
-            tilesetOption.IsRequired = true;
-            templateIdOption.IsRequired = true;
-
-            // Set handler
+            
             rootCommand.SetHandler((output, gamePath, tileset, templateId) =>
             {
+                Console.WriteLine("Note: Using the template reader without a command is deprecated.");
+                Console.WriteLine("Please use 'export' command instead: templatereader.cmd export --tileset <tileset> --template-id <id>");
                 ExportTemplate(output, gamePath, tileset, templateId);
             }, outputOption, gamePathOption, tilesetOption, templateIdOption);
 
@@ -645,5 +678,74 @@ namespace OpenRA.TemplateReader
             Console.WriteLine($"Using original path: {path}");
             return path;
         }
+        
+        private static void CheckAssets(string gamePath)
+    {
+        try
+        {
+            Console.WriteLine("Checking for essential original game assets...");
+
+            // Use provided game path or current directory
+            string resolvedGamePath = string.IsNullOrEmpty(gamePath)
+                ? Environment.CurrentDirectory
+                : gamePath;
+
+            Console.WriteLine($"Starting with game path: {resolvedGamePath}");
+
+            // Try to find OpenRA directory structure
+            resolvedGamePath = ResolveGamePath(resolvedGamePath);
+
+            // Initialize settings for file loading
+            Game.InitializeSettings(Arguments.Empty);
+
+            // Create the mix loader
+            var mixLoader = new MixLoader();
+            var modDataLoader = new ModDataLoader();
+            
+            // Check and display support directory information
+            var supportDirPath = mixLoader.GetSupportDir();
+            if (!string.IsNullOrEmpty(supportDirPath))
+            {
+                Console.WriteLine($"Found OpenRA support directory: {supportDirPath}");
+                var mixFiles = mixLoader.GetAvailableMixFiles();
+                if (mixFiles.Count > 0)
+                {
+                    Console.WriteLine($"Found {mixFiles.Count} MIX files in support directory:");
+                    foreach (var mix in mixFiles)
+                    {
+                        Console.WriteLine($"  - {mix}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No MIX files found in support directory.");
+                    Console.WriteLine("This suggests you don't have the original game content installed.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("OpenRA support directory not found.");
+                Console.WriteLine("Please make sure OpenRA is properly installed and the original game content is available.");
+                return;
+            }
+            
+            // Create and run the asset checker
+            var assetChecker = new AssetChecker(mixLoader, modDataLoader);
+            bool assetsAvailable = assetChecker.CheckEssentialAssetsAvailable();
+            
+            if (assetsAvailable)
+            {
+                Console.WriteLine("\nAll essential original game assets are available.");
+                Console.WriteLine("You should be able to use all features of OpenRA without any issues.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Error checking assets: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            Console.ResetColor();
+        }
     }
+}
 }
