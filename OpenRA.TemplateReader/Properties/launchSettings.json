@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "OpenRA.TemplateReader": {
-      "commandName": "Project",
-      "commandLineArgs": "--game-path  C:\\Workspace\\OpenRA\\mods\\ra --tileset temperat --template-id 188"
-    }
-  }
-}

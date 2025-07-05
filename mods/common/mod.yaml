@@ -1,0 +1,13 @@
+Metadata:
+	Title: Common
+	Version: {DEV_VERSION}
+	Hidden: true
+
+PackageFormats: []
+
+FileSystem:
+	Type: Folder
+	RootPath: .
+
+Packages:
+	.
