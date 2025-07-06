@@ -1,6 +1,7 @@
 ﻿// Example: Extract all resources from a .mix file using OpenRA's MixFile
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OpenRA.Mods.Cnc.FileFormats;
@@ -10,8 +11,30 @@ namespace OpenRA.MixReader
 {
 	static class MixExtractor
 	{
-		public static void ExtractMix(string mixFilePath, string outputDir, string globalDbPath = null)
+		static readonly HashSet<string> ProcessedMixFiles = new(StringComparer.OrdinalIgnoreCase);
+
+		public static void ExtractMixRecursively(
+			string mixFilePath,
+			string outputDir,
+			string globalDbPath = null,
+			int recursionLevel = 0,
+			string[] globalFilenames = null)
 		{
+			if (recursionLevel > 10)
+			{
+				Console.WriteLine($"Maximum recursion level reached for: {mixFilePath}. Stopping recursion to prevent infinite loops.");
+				return;
+			}
+
+			var normalizedPath = Path.GetFullPath(mixFilePath);
+			if (ProcessedMixFiles.Contains(normalizedPath))
+			{
+				Console.WriteLine($"Already processed: {mixFilePath}. Skipping...");
+				return;
+			}
+
+			ProcessedMixFiles.Add(normalizedPath);
+
 			if (!File.Exists(mixFilePath))
 			{
 				Console.WriteLine($"File not found: {mixFilePath}");
@@ -20,6 +43,67 @@ namespace OpenRA.MixReader
 
 			Directory.CreateDirectory(outputDir);
 
+			globalFilenames ??= LoadGlobalFilenames(globalDbPath, recursionLevel);
+
+			try
+			{
+				var mixName = Path.GetFileNameWithoutExtension(mixFilePath);
+				var mixOutputDir = Path.Combine(outputDir, mixName);
+				Directory.CreateDirectory(mixOutputDir);
+
+				using (var fs = File.OpenRead(mixFilePath))
+				{
+					var indentation = new string(' ', recursionLevel * 2);
+					Console.WriteLine($"{indentation}Opening mix file: {mixFilePath}");
+					var mix = new MixLoader.MixFile(fs, Path.GetFileName(mixFilePath), globalFilenames);
+					Console.WriteLine($"{indentation}Found {mix.Contents.Count()} files in the mix");
+
+					var extractedCount = 0;
+					var nestedMixFiles = new List<string>();
+
+					foreach (var filename in mix.Contents)
+					{
+						var outPath = Path.Combine(mixOutputDir, filename);
+						var directory = Path.GetDirectoryName(outPath);
+						if (!string.IsNullOrEmpty(directory))
+							Directory.CreateDirectory(directory);
+
+						using (var outStream = File.Create(outPath))
+						using (var inStream = mix.GetStream(filename))
+						{
+							inStream.CopyTo(outStream);
+						}
+
+						Console.WriteLine($"{indentation}Extracted: {filename}");
+						extractedCount++;
+
+						if (filename.EndsWith(".mix", StringComparison.OrdinalIgnoreCase))
+						{
+							nestedMixFiles.Add(outPath);
+						}
+					}
+
+					Console.WriteLine($"{indentation}Extraction complete: {extractedCount} files extracted to {mixOutputDir}");
+
+					if (nestedMixFiles.Count > 0)
+					{
+						Console.WriteLine($"{indentation}Found {nestedMixFiles.Count} nested .mix files. Processing...");
+						foreach (var nestedMixFile in nestedMixFiles)
+						{
+							ExtractMixRecursively(nestedMixFile, outputDir, globalDbPath, recursionLevel + 1, globalFilenames);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error extracting mix file: {ex.Message}");
+				Console.WriteLine(ex.StackTrace);
+			}
+		}
+
+		static string[] LoadGlobalFilenames(string globalDbPath, int recursionLevel)
+		{
 			var globalFilenames = Array.Empty<string>();
 			if (!string.IsNullOrEmpty(globalDbPath) && File.Exists(globalDbPath))
 			{
@@ -37,50 +121,12 @@ namespace OpenRA.MixReader
 					Console.WriteLine($"Error loading global mix database: {ex.Message}");
 				}
 			}
-			else
+			else if (recursionLevel == 0)
 			{
 				Console.WriteLine("Warning: No global mix database specified. File identification may be limited.");
 			}
 
-			try
-			{
-				// Create subfolder based on mix filename
-				var mixName = Path.GetFileNameWithoutExtension(mixFilePath);
-				var mixOutputDir = Path.Combine(outputDir, mixName);
-				Directory.CreateDirectory(mixOutputDir);
-
-				using (var fs = File.OpenRead(mixFilePath))
-				{
-					Console.WriteLine($"Opening mix file: {mixFilePath}");
-					var mix = new MixLoader.MixFile(fs, Path.GetFileName(mixFilePath), globalFilenames);
-					Console.WriteLine($"Found {mix.Contents.Count()} files in the mix");
-
-					var extractedCount = 0;
-					foreach (var filename in mix.Contents)
-					{
-						var outPath = Path.Combine(mixOutputDir, filename);
-						var directory = Path.GetDirectoryName(outPath);
-						if (!string.IsNullOrEmpty(directory))
-							Directory.CreateDirectory(directory);
-
-						using (var outStream = File.Create(outPath))
-						using (var inStream = mix.GetStream(filename))
-						{
-							inStream.CopyTo(outStream);
-						}
-
-						Console.WriteLine($"Extracted: {filename}");
-						extractedCount++;
-					}
-
-					Console.WriteLine($"Extraction complete: {extractedCount} files extracted to {mixOutputDir}");
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error extracting mix file: {ex.Message}");
-				Console.WriteLine(ex.StackTrace);
-			}
+			return globalFilenames;
 		}
 
 		public static void ExtractAllMixesInDirectory(string directory, string outputDir, string globalDbPath = null)
@@ -97,15 +143,15 @@ namespace OpenRA.MixReader
 			foreach (var mixFile in mixFiles)
 			{
 				Console.WriteLine($"\nProcessing: {mixFile}");
-				ExtractMix(mixFile, outputDir, globalDbPath);
+				ExtractMixRecursively(mixFile, outputDir, globalDbPath);
 			}
 
 			Console.WriteLine($"\nAll mix files processed. Extracted files can be found in {outputDir}");
+			Console.WriteLine($"Total unique mix files processed: {ProcessedMixFiles.Count}");
 		}
 
 		static void Main(string[] args)
 		{
-			// Initialize OpenRA logging system
 			Log.AddChannel("perf", "perf.log");
 			Log.AddChannel("debug", "debug.log");
 			Log.AddChannel("server", "server.log");
@@ -131,7 +177,7 @@ namespace OpenRA.MixReader
 			else if (args.Length >= 2)
 			{
 				var globalDbPath = args.Length > 2 ? args[2] : "global mix database.dat";
-				ExtractMix(args[0], args[1], globalDbPath);
+				ExtractMixRecursively(args[0], args[1], globalDbPath);
 			}
 			else
 			{
