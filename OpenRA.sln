@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.TilesetReader", "Ope
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.TemplateReader", "OpenRA.TemplateReader\OpenRA.TemplateReader.csproj", "{642D518C-00D0-9DF7-CD2E-A4AA013C5D40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRA.MixReader", "OpenRA.MixReader\OpenRA.MixReader.csproj", "{4C71DA3A-284B-4A06-BBD4-CF15D1C735E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,10 @@ Global
 		{642D518C-00D0-9DF7-CD2E-A4AA013C5D40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{642D518C-00D0-9DF7-CD2E-A4AA013C5D40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{642D518C-00D0-9DF7-CD2E-A4AA013C5D40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C71DA3A-284B-4A06-BBD4-CF15D1C735E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C71DA3A-284B-4A06-BBD4-CF15D1C735E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C71DA3A-284B-4A06-BBD4-CF15D1C735E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C71DA3A-284B-4A06-BBD4-CF15D1C735E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -54,3 +54,7 @@ update.log
 
 # IntelliJ files
 .idea
+*.mix
+/exported-tiles
+/extracted_files
+/mods/Content
