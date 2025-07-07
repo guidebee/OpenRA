@@ -1,0 +1,83 @@
+{
+  "Id": 116,
+  "Size": "3x3",
+  "PickAny": false,
+  "Categories": [
+    "River"
+  ],
+  "TilesCount": 9,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "284428",
+      "MaxColor": "284428"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C8CB4",
+      "MaxColor": "5C8CB4"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C8CB4",
+      "MaxColor": "5C8CB4"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    },
+    {
+      "Index": 6,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    },
+    {
+      "Index": 7,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C8CB4",
+      "MaxColor": "5C8CB4"
+    },
+    {
+      "Index": 8,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    }
+  ]
+}

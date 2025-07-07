@@ -1,0 +1,19 @@
+{
+  "Id": 256,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Terrain"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    }
+  ]
+}

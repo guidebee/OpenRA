@@ -1,0 +1,67 @@
+{
+  "Id": "INTERIOR",
+  "TerrainTypes": [
+    {
+      "Type": "Clear",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "000000",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "ClearNoSmudges",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "000000",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Gems",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "8470FF",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Ore",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "948060",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Tree",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "1C2024",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Wall",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "D0C0A0",
+      "AcceptsSmudgeType": []
+    }
+  ],
+  "TemplateCount": 142,
+  "EditorTemplateOrder": [
+    "Floor",
+    "Wall"
+  ]
+}

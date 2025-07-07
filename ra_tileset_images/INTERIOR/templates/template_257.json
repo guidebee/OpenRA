@@ -1,0 +1,59 @@
+{
+  "Id": 257,
+  "Size": "1x1",
+  "PickAny": true,
+  "Categories": [
+    "Floor"
+  ],
+  "TilesCount": 6,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "Id": 199,
+  "Size": "2x3",
+  "PickAny": false,
+  "Categories": [
+    "Cliffs"
+  ],
+  "TilesCount": 6,
+  "Tiles": [
+    {
+      "Index": 1,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 8,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    }
+  ]
+}

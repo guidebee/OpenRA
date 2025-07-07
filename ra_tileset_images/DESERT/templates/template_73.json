@@ -1,0 +1,19 @@
+{
+  "Id": 73,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "River"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "6F848B",
+      "MaxColor": "6F848B"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "Id": 415,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Beach"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "865F45",
+      "MaxColor": "865F45"
+    }
+  ]
+}

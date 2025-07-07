@@ -1,0 +1,19 @@
+{
+  "Id": 312,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Wall"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "D0C0A0",
+      "MaxColor": "D0C0A0"
+    }
+  ]
+}

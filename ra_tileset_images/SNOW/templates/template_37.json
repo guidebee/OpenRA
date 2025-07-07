@@ -1,0 +1,99 @@
+{
+  "Id": 37,
+  "Size": "4x4",
+  "PickAny": false,
+  "Categories": [
+    "Beach"
+  ],
+  "TilesCount": 16,
+  "Tiles": [
+    {
+      "Index": 2,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C74A4",
+      "MaxColor": "5C74A4"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "C4C4C4",
+      "MaxColor": "C4C4C4"
+    },
+    {
+      "Index": 6,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    },
+    {
+      "Index": 7,
+      "TerrainType": 8,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    },
+    {
+      "Index": 9,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    },
+    {
+      "Index": 10,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    },
+    {
+      "Index": 11,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C74A4",
+      "MaxColor": "5C74A4"
+    },
+    {
+      "Index": 12,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "C4C4C4",
+      "MaxColor": "C4C4C4"
+    },
+    {
+      "Index": 13,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    },
+    {
+      "Index": 14,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C74A4",
+      "MaxColor": "5C74A4"
+    }
+  ]
+}

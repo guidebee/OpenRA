@@ -1,0 +1,43 @@
+{
+  "Id": 304,
+  "Size": "2x2",
+  "PickAny": false,
+  "Categories": [
+    "Water Cliffs"
+  ],
+  "TilesCount": 4,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    }
+  ]
+}

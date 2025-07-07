@@ -1,0 +1,43 @@
+{
+  "Id": 120,
+  "Size": "2x2",
+  "PickAny": false,
+  "Categories": [
+    "River"
+  ],
+  "TilesCount": 4,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "284428",
+      "MaxColor": "284428"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 2,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "284428",
+      "MaxColor": "284428"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C8CB4",
+      "MaxColor": "5C8CB4"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5C8CB4",
+      "MaxColor": "5C8CB4"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "Id": 623,
+  "Size": "6x4",
+  "PickAny": false,
+  "Categories": [
+    "Bridge"
+  ],
+  "TilesCount": 24,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "A87B53",
+      "MaxColor": "A87B53"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "A87B53",
+      "MaxColor": "A87B53"
+    },
+    {
+      "Index": 6,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "6F848B",
+      "MaxColor": "6F848B"
+    },
+    {
+      "Index": 11,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 12,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 17,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 18,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "A87B53",
+      "MaxColor": "A87B53"
+    },
+    {
+      "Index": 19,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "A87B53",
+      "MaxColor": "A87B53"
+    },
+    {
+      "Index": 20,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 21,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 22,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "6F848B",
+      "MaxColor": "6F848B"
+    },
+    {
+      "Index": 23,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "6F848B",
+      "MaxColor": "6F848B"
+    }
+  ]
+}

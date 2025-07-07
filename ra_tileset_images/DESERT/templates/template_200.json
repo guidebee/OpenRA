@@ -1,0 +1,27 @@
+{
+  "Id": 200,
+  "Size": "1x2",
+  "PickAny": false,
+  "Categories": [
+    "Cliffs"
+  ],
+  "TilesCount": 2,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    }
+  ]
+}

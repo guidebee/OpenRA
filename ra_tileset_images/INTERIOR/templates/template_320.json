@@ -1,0 +1,19 @@
+{
+  "Id": 320,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Floor"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "000000",
+      "MaxColor": "000000"
+    }
+  ]
+}

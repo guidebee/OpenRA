@@ -1,0 +1,67 @@
+{
+  "Id": 235,
+  "Size": "4x2",
+  "PickAny": false,
+  "Categories": [
+    "Bridge"
+  ],
+  "TilesCount": 8,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 1,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "606060",
+      "MaxColor": "606060"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 1,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "606060",
+      "MaxColor": "606060"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 1,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "606060",
+      "MaxColor": "606060"
+    },
+    {
+      "Index": 6,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "745A3F",
+      "MaxColor": "745A3F"
+    },
+    {
+      "Index": 7,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "6F848B",
+      "MaxColor": "6F848B"
+    }
+  ]
+}

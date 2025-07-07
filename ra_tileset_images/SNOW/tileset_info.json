@@ -1,0 +1,134 @@
+{
+  "Id": "SNOW",
+  "TerrainTypes": [
+    {
+      "Type": "Beach",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "B09C78",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Bridge",
+      "TargetTypes": [
+        "Ground",
+        "Bridge"
+      ],
+      "Color": "606060",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Clear",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "C4C4C4",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Gems",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "8470FF",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Ore",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "948060",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "River",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "5C8CB4",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Road",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "587474",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Rock",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "44443C",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Rough",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "44443C",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Tree",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "1C2024",
+      "AcceptsSmudgeType": []
+    },
+    {
+      "Type": "Wall",
+      "TargetTypes": [
+        "Ground"
+      ],
+      "Color": "D0C0A0",
+      "AcceptsSmudgeType": [
+        "Crater",
+        "Scorch"
+      ]
+    },
+    {
+      "Type": "Water",
+      "TargetTypes": [
+        "Water"
+      ],
+      "Color": "5C74A4",
+      "AcceptsSmudgeType": []
+    }
+  ],
+  "TemplateCount": 264,
+  "EditorTemplateOrder": [
+    "Terrain",
+    "Debris",
+    "Road",
+    "Cliffs",
+    "Water Cliffs",
+    "Beach",
+    "River",
+    "Bridge"
+  ]
+}

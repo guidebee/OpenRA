@@ -1,0 +1,19 @@
+{
+  "Id": 165,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Road"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "A87B53",
+      "MaxColor": "A87B53"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "Id": 257,
+  "Size": "2x2",
+  "PickAny": false,
+  "Categories": [
+    "Terrain"
+  ],
+  "TilesCount": 4,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    }
+  ]
+}

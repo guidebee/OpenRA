@@ -1,0 +1,35 @@
+{
+  "Id": 409,
+  "Size": "3x1",
+  "PickAny": false,
+  "Categories": [
+    "Beach"
+  ],
+  "TilesCount": 3,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    },
+    {
+      "Index": 1,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 11,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5DA5CE",
+      "MaxColor": "5DA5CE"
+    }
+  ]
+}

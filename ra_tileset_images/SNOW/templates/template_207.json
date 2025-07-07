@@ -1,0 +1,67 @@
+{
+  "Id": 207,
+  "Size": "3x3",
+  "PickAny": false,
+  "Categories": [
+    "Road"
+  ],
+  "TilesCount": 9,
+  "Tiles": [
+    {
+      "Index": 1,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 5,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 6,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    },
+    {
+      "Index": 7,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "587474",
+      "MaxColor": "587474"
+    }
+  ]
+}

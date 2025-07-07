@@ -1,0 +1,27 @@
+{
+  "Id": 381,
+  "Size": "5x1",
+  "PickAny": false,
+  "Categories": [
+    "Bridge"
+  ],
+  "TilesCount": 5,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 6,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "5E430D",
+      "MaxColor": "5E430D"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 0,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "B09C78",
+      "MaxColor": "B09C78"
+    }
+  ]
+}

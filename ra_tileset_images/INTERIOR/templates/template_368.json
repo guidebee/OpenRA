@@ -1,0 +1,43 @@
+{
+  "Id": 368,
+  "Size": "2x3",
+  "PickAny": false,
+  "Categories": [
+    "Wall"
+  ],
+  "TilesCount": 6,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "D0C0A0",
+      "MaxColor": "D0C0A0"
+    },
+    {
+      "Index": 2,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "D0C0A0",
+      "MaxColor": "D0C0A0"
+    },
+    {
+      "Index": 3,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "D0C0A0",
+      "MaxColor": "D0C0A0"
+    },
+    {
+      "Index": 4,
+      "TerrainType": 5,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "D0C0A0",
+      "MaxColor": "D0C0A0"
+    }
+  ]
+}

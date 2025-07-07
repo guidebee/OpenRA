@@ -1,0 +1,19 @@
+{
+  "Id": 106,
+  "Size": "1x1",
+  "PickAny": false,
+  "Categories": [
+    "Debris"
+  ],
+  "TilesCount": 1,
+  "Tiles": [
+    {
+      "Index": 0,
+      "TerrainType": 7,
+      "Height": 0,
+      "RampType": 0,
+      "MinColor": "44443C",
+      "MaxColor": "44443C"
+    }
+  ]
+}
