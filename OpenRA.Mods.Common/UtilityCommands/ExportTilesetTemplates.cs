@@ -94,7 +94,7 @@ namespace OpenRA.Mods.Common.UtilityCommands
 			Console.WriteLine($"Export completed to {outputPath}");
 		}
 
-		private void ExportTilesetInfo(string tilesetId, ITemplatedTerrainInfo terrainInfo, string outputPath)
+		static void ExportTilesetInfo(string tilesetId, ITemplatedTerrainInfo terrainInfo, string outputPath)
 		{
 			var filePath = Path.Combine(outputPath, "tileset_info.json");
 
@@ -120,7 +120,7 @@ namespace OpenRA.Mods.Common.UtilityCommands
 			Console.WriteLine($"Exported tileset info to {filePath}");
 		}
 
-		private void ExportTemplateInfo(ushort id, TerrainTemplateInfo template, string outputPath)
+		static void ExportTemplateInfo(ushort id, TerrainTemplateInfo template, string outputPath)
 		{
 			var filePath = Path.Combine(outputPath, $"template_{id}.json");
 
@@ -156,7 +156,7 @@ namespace OpenRA.Mods.Common.UtilityCommands
 			File.WriteAllText(filePath, json);
 		}
 
-		private void ExportTemplateImages(ushort id, TerrainTemplateInfo template, string outputPath, string tilesetId, ModData modData)
+		static void ExportTemplateImages(ushort id, TerrainTemplateInfo template, string outputPath, string tilesetId, ModData modData)
 		{
 			if (template is not DefaultTerrainTemplateInfo defaultTemplate || defaultTemplate.Images == null || defaultTemplate.Images.Length == 0)
 			{
@@ -177,9 +177,9 @@ namespace OpenRA.Mods.Common.UtilityCommands
 					paletteName = defaultTemplate.Palette;
 					
 				// Get the proper palette colors
-				var palColors = GetPaletteColors(modData, paletteName);
+				var palColors = GetPaletteColors(modData, tilesetId);
 				
-				Console.WriteLine($"Using palette '{paletteName}' for template {id}");
+				Console.WriteLine($"Using palette '{tilesetId}' for template {id}");
 
 				// Export the template images
 				for (var i = 0; i < defaultTemplate.Images.Length; i++)
@@ -224,7 +224,7 @@ namespace OpenRA.Mods.Common.UtilityCommands
 			}
 		}
 
-		private void GeneratePlaceholderImage(ushort id, TerrainTemplateInfo template, string outputPath)
+		static void GeneratePlaceholderImage(ushort id, TerrainTemplateInfo template, string outputPath)
 		{
 			var outputFile = Path.Combine(outputPath, $"template_{id}_placeholder.png");
 
@@ -274,6 +274,49 @@ namespace OpenRA.Mods.Common.UtilityCommands
 			png.Save(outputFile);
 
 			Console.WriteLine($"Generated placeholder image for template {id} at {outputFile}");
+		}
+		
+		static Color[] GetPaletteColors(ModData modData, string tilesetId)
+		{
+			// Create an array for the palette colors
+			var palColors = new Color[Palette.Size];
+			
+			try
+			{
+				// Try to load the actual game palette directly from filesystem
+				var fileSystem = modData.DefaultFileSystem;
+			
+				var palettePath = tilesetId.ToLowerInvariant() + ".pal";
+				// For terrain palette, try common palette file naming patterns
+				
+				// Try with the direct palette name
+				if (fileSystem.Exists(palettePath))
+				{
+					using (var stream = fileSystem.Open(palettePath))
+					{
+						var palette = new ImmutablePalette(stream, new[] { 0 }, Array.Empty<int>());
+						for (var i = 0; i < Palette.Size; i++)
+							palColors[i] = palette.GetColor(i);
+						
+						Console.WriteLine($"Loaded palette from {palettePath}");
+						return palColors;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error loading palette '{tilesetId}': {ex.Message}");
+				Console.WriteLine("Falling back to grayscale palette.");
+			}
+			
+			// Fallback to a grayscale palette if the game palette can't be loaded
+			for (var i = 0; i < Palette.Size; i++)
+			{
+				var intensity = Math.Min(255, i);
+				palColors[i] = Color.FromArgb(255, intensity, intensity, intensity);
+			}
+			
+			return palColors;
 		}
 	}
 }
