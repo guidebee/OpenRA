@@ -9,14 +9,15 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Graphics;
 using OpenRA.Mods.Common.Terrain;
 using OpenRA.Primitives;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using TagLib.Id3v2;
 
 namespace OpenRA.Mods.Common.UtilityCommands
 {
@@ -149,6 +150,7 @@ namespace OpenRA.Mods.Common.UtilityCommands
 				PickAny = template.PickAny,
 				Categories = template.Categories,
 				TilesCount = template.TilesCount,
+				Images = template is DefaultTerrainTemplateInfo defaultTemplate ? defaultTemplate.Images : null,
 				Tiles = tileInfos
 			};
 
@@ -181,6 +183,10 @@ namespace OpenRA.Mods.Common.UtilityCommands
 				
 				Console.WriteLine($"Using palette '{tilesetId}' for template {id}");
 
+				if (defaultTemplate.Images.Length != 1)
+				{
+					Console.WriteLine("Invalid");
+				}
 				// Export the template images
 				for (var i = 0; i < defaultTemplate.Images.Length; i++)
 				{
@@ -191,19 +197,67 @@ namespace OpenRA.Mods.Common.UtilityCommands
 					try
 					{
 						var frames = sequences.SpriteCache.LoadFramesUncached(imageName);
+
+
 						if (frames != null && frames.Length > 0)
 						{
+							var tempData = new byte[defaultTemplate.Size.X * defaultTemplate.Size.Y *
+							                        24 * 24];
+							//clear the tempData array
+							Array.Clear(tempData, 0, tempData.Length);
+
+							
+
 							// Export each frame as a separate PNG
-							for (var f = 0; f < frames.Length; f++)
+							for (var y = 0; y < template.Size.Y; y++)
 							{
-								var frame = frames[f];
-								var frameFile = Path.Combine(outputPath, $"template_{id}_image_{i}_{imageName}_frame_{f}.png");
+								for (var x = 0; x < template.Size.X; x++)
 
-								// Create and save the PNG
-								var png = new Png(frame.Data, frame.Type, frame.Size.Width, frame.Size.Height, palColors);
-								png.Save(frameFile);
+								{
+									var f = x + y * template.Size.X;
+									var tile = new TerrainTile(template.Id, (byte)f);
+									
+									if (!terrainInfo.TryGetTileInfo(tile, out var tileInfo))
+										continue;
+									var frame = frames[f];
 
-								Console.WriteLine($"Exported frame {f} of template {id} image {imageName} to {frameFile}");
+									var templatesPath = Path.Combine(outputPath, $"template_{id}");
+									//create the directory if it doesn't exist
+									Directory.CreateDirectory(templatesPath);
+
+
+									var frameFile = Path.Combine(templatesPath,
+										$"template_{id}_{imageName}_frame_{f}_{x}_{y}.png");
+
+									// Create and save the PNG
+									var png = new Png(frame.Data, frame.Type, frame.Size.Width, frame.Size.Height,
+										palColors);
+
+
+
+									png.Save(frameFile);
+
+									Console.WriteLine(
+										$"Exported frame {f} of template {id} image {imageName} to {frameFile}");
+
+									// For each row in the tile
+									for (int row = 0; row < frame.Size.Height; row++)
+									{
+										int destRow = y * frame.Size.Height + row;
+										int destCol = x * frame.Size.Width;
+										int destIndex = destRow * (template.Size.X * frame.Size.Width) + destCol;
+										int srcIndex = row * frame.Size.Width;
+										Array.Copy(frame.Data, srcIndex, tempData, destIndex, frame.Size.Width);
+									}
+								}
+
+								var tempPng = new Png(tempData, frames[0].Type,
+									24 * defaultTemplate.Size.X,
+									24 * defaultTemplate.Size.Y, palColors);
+								tempPng.Save(Path.Combine(outputPath, $"template_{id}_{imageName}.png"));
+								Console.WriteLine(
+									$"Exported template {id} image {imageName} to {Path.Combine(outputPath, $"template_{id}_image_{i}_{imageName}.png")}");
+
 							}
 						}
 						else
