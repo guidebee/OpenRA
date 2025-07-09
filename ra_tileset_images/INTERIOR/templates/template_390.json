@@ -6,6 +6,9 @@
     "Wall"
   ],
   "TilesCount": 1,
+  "Images": [
+    "xtra0007.int"
+  ],
   "Tiles": [
     {
       "Index": 0,

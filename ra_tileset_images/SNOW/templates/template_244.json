@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 8,
+  "Images": [
+    "br3d.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

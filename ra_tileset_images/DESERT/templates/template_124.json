@@ -6,6 +6,9 @@
     "Road"
   ],
   "TilesCount": 12,
+  "Images": [
+    "d05.des"
+  ],
   "Tiles": [
     {
       "Index": 1,

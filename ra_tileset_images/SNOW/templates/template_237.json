@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 12,
+  "Images": [
+    "br1c.sno"
+  ],
   "Tiles": [
     {
       "Index": 1,

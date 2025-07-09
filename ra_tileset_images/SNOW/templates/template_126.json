@@ -6,6 +6,9 @@
     "Water Cliffs"
   ],
   "TilesCount": 9,
+  "Images": [
+    "falls1a.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

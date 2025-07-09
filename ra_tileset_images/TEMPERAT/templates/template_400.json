@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 12,
+  "Images": [
+    "hill01.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

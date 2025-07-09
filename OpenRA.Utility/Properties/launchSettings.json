@@ -2,7 +2,7 @@
   "profiles": {
     "OpenRA.Utility": {
       "commandName": "Project",
-      "commandLineArgs": "ra --export-tileset-templates TEMPERAT --images --output C:\\Workspace\\OpenRA\\output_images\\TEMPERAT",
+      "commandLineArgs": "ra --export-tileset-templates DESERT --images --output C:\\Workspace\\OpenRA\\output_images\\DESERT",
       "environmentVariables": {
         "ENGINE_DIR": ".."
       }

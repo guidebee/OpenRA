@@ -6,6 +6,9 @@
     "Water Cliffs"
   ],
   "TilesCount": 2,
+  "Images": [
+    "cliffsw4.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

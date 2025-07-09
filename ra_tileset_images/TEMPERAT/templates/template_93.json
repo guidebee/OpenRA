@@ -6,6 +6,9 @@
     "Water Cliffs"
   ],
   "TilesCount": 4,
+  "Images": [
+    "wc35.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

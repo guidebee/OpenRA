@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 6,
+  "Images": [
+    "falls2.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

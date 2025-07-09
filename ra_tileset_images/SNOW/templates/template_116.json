@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 9,
+  "Images": [
+    "rv05.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "Cliffs"
   ],
   "TilesCount": 4,
+  "Images": [
+    "s15.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

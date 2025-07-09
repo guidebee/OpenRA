@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 15,
+  "Images": [
+    "bridge1d.tem"
+  ],
   "Tiles": [
     {
       "Index": 1,

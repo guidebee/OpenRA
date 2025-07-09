@@ -6,6 +6,9 @@
     "Floor"
   ],
   "TilesCount": 16,
+  "Images": [
+    "clear1.int"
+  ],
   "Tiles": [
     {
       "Index": 0,

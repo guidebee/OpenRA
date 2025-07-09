@@ -6,6 +6,9 @@
     "Beach"
   ],
   "TilesCount": 9,
+  "Images": [
+    "sh06.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

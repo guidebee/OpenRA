@@ -6,6 +6,9 @@
     "Cliffs"
   ],
   "TilesCount": 4,
+  "Images": [
+    "s33.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

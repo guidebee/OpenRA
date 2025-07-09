@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 8,
+  "Images": [
+    "p07.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

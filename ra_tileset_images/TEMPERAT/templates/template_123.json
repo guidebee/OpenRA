@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 12,
+  "Images": [
+    "rv12.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "Cliffs"
   ],
   "TilesCount": 2,
+  "Images": [
+    "cliffsl2.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

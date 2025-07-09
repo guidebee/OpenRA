@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 6,
+  "Images": [
+    "br05.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "Terrain"
   ],
   "TilesCount": 4,
+  "Images": [
+    "sh18.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

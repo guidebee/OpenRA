@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 3,
+  "Images": [
+    "b3.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

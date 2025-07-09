@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 1,
+  "Images": [
+    "rf05.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

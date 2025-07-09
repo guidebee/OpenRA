@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 9,
+  "Images": [
+    "f02.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

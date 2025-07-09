@@ -6,6 +6,9 @@
     "Floor"
   ],
   "TilesCount": 12,
+  "Images": [
+    "flor0004.int"
+  ],
   "Tiles": [
     {
       "Index": 0,

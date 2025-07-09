@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 9,
+  "Images": [
+    "f03.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

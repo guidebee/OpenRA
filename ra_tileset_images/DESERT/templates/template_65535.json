@@ -6,6 +6,9 @@
     "Terrain"
   ],
   "TilesCount": 16,
+  "Images": [
+    "clear1.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

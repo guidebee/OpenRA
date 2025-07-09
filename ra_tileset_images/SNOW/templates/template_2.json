@@ -6,6 +6,9 @@
     "Terrain"
   ],
   "TilesCount": 4,
+  "Images": [
+    "w2.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

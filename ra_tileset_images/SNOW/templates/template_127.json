@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 6,
+  "Images": [
+    "falls2.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 9,
+  "Images": [
+    "ford1.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

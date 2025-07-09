@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 2,
+  "Images": [
+    "sh59.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

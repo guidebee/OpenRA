@@ -6,6 +6,9 @@
     "Terrain"
   ],
   "TilesCount": 16,
+  "Images": [
+    "clear1.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

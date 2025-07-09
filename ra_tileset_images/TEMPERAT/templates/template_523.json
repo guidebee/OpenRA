@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 8,
+  "Images": [
+    "sbridge3.tem"
+  ],
   "Tiles": [
     {
       "Index": 1,

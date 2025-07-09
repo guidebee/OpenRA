@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 1,
+  "Images": [
+    "dech.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

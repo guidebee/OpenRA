@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 2,
+  "Images": [
+    "fjord1.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

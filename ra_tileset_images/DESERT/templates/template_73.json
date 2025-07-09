@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 1,
+  "Images": [
+    "rv26.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

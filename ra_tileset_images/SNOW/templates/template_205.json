@@ -6,6 +6,9 @@
     "Road"
   ],
   "TilesCount": 4,
+  "Images": [
+    "d33.sno"
+  ],
   "Tiles": [
     {
       "Index": 1,

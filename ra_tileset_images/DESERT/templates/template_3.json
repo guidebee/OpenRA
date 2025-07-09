@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 2,
+  "Images": [
+    "b02.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

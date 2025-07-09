@@ -6,6 +6,9 @@
     "Floor"
   ],
   "TilesCount": 13,
+  "Images": [
+    "gflr0005.int"
+  ],
   "Tiles": [
     {
       "Index": 0,

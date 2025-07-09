@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 8,
+  "Images": [
+    "bridge2h.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

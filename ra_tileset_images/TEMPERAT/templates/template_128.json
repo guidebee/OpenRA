@@ -6,6 +6,9 @@
     "Water Cliffs"
   ],
   "TilesCount": 6,
+  "Images": [
+    "falls2a.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

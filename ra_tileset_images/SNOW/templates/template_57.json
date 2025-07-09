@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 1,
+  "Images": [
+    "sh55.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

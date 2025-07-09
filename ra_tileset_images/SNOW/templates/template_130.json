@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 9,
+  "Images": [
+    "ford2.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

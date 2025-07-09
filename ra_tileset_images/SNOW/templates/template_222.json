@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 1,
+  "Images": [
+    "rf07.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

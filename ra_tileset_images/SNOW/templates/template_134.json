@@ -6,6 +6,9 @@
     "Bridge"
   ],
   "TilesCount": 10,
+  "Images": [
+    "bridge2d.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

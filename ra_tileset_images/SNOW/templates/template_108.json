@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 6,
+  "Images": [
+    "p08.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

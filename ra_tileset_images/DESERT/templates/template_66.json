@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 48,
+  "Images": [
+    "rv20.des"
+  ],
   "Tiles": [
     {
       "Index": 2,

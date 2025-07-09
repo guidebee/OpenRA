@@ -6,6 +6,9 @@
     "Beach"
   ],
   "TilesCount": 4,
+  "Images": [
+    "sh27.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "River"
   ],
   "TilesCount": 9,
+  "Images": [
+    "falls1.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

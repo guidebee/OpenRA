@@ -6,6 +6,9 @@
     "Road"
   ],
   "TilesCount": 6,
+  "Images": [
+    "d17.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

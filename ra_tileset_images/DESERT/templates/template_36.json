@@ -6,6 +6,9 @@
     "Debris"
   ],
   "TilesCount": 1,
+  "Images": [
+    "p02.des"
+  ],
   "Tiles": [
     {
       "Index": 0,

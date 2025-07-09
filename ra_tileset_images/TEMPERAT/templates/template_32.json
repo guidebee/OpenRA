@@ -6,6 +6,9 @@
     "Beach"
   ],
   "TilesCount": 6,
+  "Images": [
+    "sh30.tem"
+  ],
   "Tiles": [
     {
       "Index": 0,

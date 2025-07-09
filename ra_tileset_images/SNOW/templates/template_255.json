@@ -6,6 +6,9 @@
     "Terrain"
   ],
   "TilesCount": 20,
+  "Images": [
+    "clear1.sno"
+  ],
   "Tiles": [
     {
       "Index": 0,

@@ -6,6 +6,9 @@
     "Floor"
   ],
   "TilesCount": 6,
+  "Images": [
+    "arro0002.int"
+  ],
   "Tiles": [
     {
       "Index": 0,
