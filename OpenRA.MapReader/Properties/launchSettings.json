@@ -2,7 +2,7 @@
   "profiles": {
     "OpenRA.MapReader": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Workspace\\OpenRA\\mods\\ra\\maps\\"
+      "commandLineArgs": "C:\\workspace\\ra2\\mods\\ra2\\maps"
     }
   }
 }
